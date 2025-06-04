@@ -5,6 +5,7 @@ import os
 import re
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import ast
 
 COMMON_SUBDOMAINS = [
     "www", "blog", "mail", "api", "dev", "test", "shop", "forum", "news", "m"
@@ -169,6 +170,45 @@ class Roboter:
             else:
                 f.write("\nNo common subdomains found.\n")
         print(f"\nResults written to {filename}")
+
+    def analyze_outputs(filepath):
+        outputs = []
+        with open(filepath, "r", encoding="utf-8") as f:
+            source = f.read()
+        tree = ast.parse(source, filename=filepath)
+        for node in ast.walk(tree):
+            # Detect file writes
+            if isinstance(node, ast.Call) and hasattr(node.func, 'id') and node.func.id == 'open':
+                if len(node.args) >= 2 and hasattr(node.args[1], 's'):
+                    mode = node.args[1].s
+                    if 'w' in mode:
+                        if hasattr(node.args[0], 's'):
+                            outputs.append({
+                                "type": "file",
+                                "filename": node.args[0].s,
+                                "mode": mode,
+                                "description": "File written by program"
+                            })
+            # Detect print statements
+            if isinstance(node, ast.Call) and hasattr(node.func, 'id') and node.func.id == 'print':
+                outputs.append({
+                    "type": "console",
+                    "description": "Prints output to the terminal"
+                })
+        return outputs
+
+def main(*args):
+    """
+    Entry point for roboter as a meta system.
+    Usage: main(url)
+    Example: main("example.com")
+    """
+    if not args:
+        print("Usage: roboter <website_url>")
+        return
+    url = args[0]
+    roboter = Roboter(url)
+    roboter.print_rules()
 
 if __name__ == "__main__":
     print("NOTICE: This tool checks robots.txt and will not crawl if your user-agent or all bots are disallowed.")
