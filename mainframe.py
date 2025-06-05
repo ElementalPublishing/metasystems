@@ -286,6 +286,12 @@ def analyze_last_run(filepath):
                 return line.split(":", 1)[1].strip()
     return None
 
+def pretty_print_json_file(filename):
+    with open(filename, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
 def run_system(system_name, *args):
     if system_name not in AVAILABLE_SYSTEMS:
         print(f"System '{system_name}' not found.")
@@ -336,6 +342,7 @@ def run_system(system_name, *args):
     json_filename = f"{system_name}_analysis.json"
     with open(json_filename, "w", encoding="utf-8") as jf:
         json.dump(output_info, jf, indent=2, ensure_ascii=False)
+    pretty_print_json_file(json_filename)
     print(f"Analysis written to {json_filename}")
     module = importlib.import_module(AVAILABLE_SYSTEMS[system_name])
     if hasattr(module, "main"):

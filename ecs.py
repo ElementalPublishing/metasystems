@@ -1,6 +1,15 @@
+from ecs import (
+    ECS, Entity, DescriptionComponent, InputComponent, OutputComponent, SourceCodeComponent,
+    TagComponent, DependencyComponent, StatusComponent, ConfigComponent, ResultComponent,
+    DocumentationComponent, TimestampComponent, AuthorComponent, VisualizationComponent,
+    SecurityComponent, AnalyticsComponent, Component
+)
+import datetime
 import json
 import os
 from datetime import datetime
+
+# --- Core ECS Classes and Components ---
 
 class Component:
     pass
@@ -54,8 +63,6 @@ class AuthorComponent(Component):
     def __init__(self, author):
         self.author = author
 
-# Awesome & Unique Components
-
 class VisualizationComponent(Component):
     """Holds visualization or UI hints for the entity."""
     def __init__(self, hints):
@@ -70,6 +77,26 @@ class AnalyticsComponent(Component):
     """Tracks usage analytics or performance metrics."""
     def __init__(self, metrics):
         self.metrics = metrics  # Dict of analytics data
+
+# --- Unique Components ---
+
+class ScheduleComponent(Component):
+    """Holds scheduling info for timed or periodic systems."""
+    def __init__(self, cron=None, interval_seconds=None):
+        self.cron = cron
+        self.interval_seconds = interval_seconds
+
+class EventComponent(Component):
+    """Tracks events this entity can emit or respond to."""
+    def __init__(self, events=None):
+        self.events = events or []
+
+class HistoryComponent(Component):
+    """Keeps a log of actions or state changes."""
+    def __init__(self, history=None):
+        self.history = history or []
+
+# --- ECS Entity and Manager ---
 
 class Entity:
     def __init__(self, name):
@@ -94,7 +121,6 @@ class ECS:
         entity.add_component(InputComponent, InputComponent(data.get("detected_inputs", [])))
         entity.add_component(OutputComponent, OutputComponent(data.get("detected_outputs", [])))
         entity.add_component(SourceCodeComponent, SourceCodeComponent(data.get("source_code", "")))
-        # Add some demo/empty components for demonstration
         entity.add_component(TagComponent, TagComponent(data.get("tags", [])))
         entity.add_component(DependencyComponent, DependencyComponent(data.get("dependencies", [])))
         entity.add_component(StatusComponent, StatusComponent(data.get("status", "idle")))
@@ -106,6 +132,10 @@ class ECS:
         entity.add_component(VisualizationComponent, VisualizationComponent(data.get("visualization_hints", {})))
         entity.add_component(SecurityComponent, SecurityComponent(data.get("permissions", [])))
         entity.add_component(AnalyticsComponent, AnalyticsComponent(data.get("metrics", {})))
+        # Add unique/demo components (optional, for demonstration)
+        entity.add_component(ScheduleComponent, ScheduleComponent())
+        entity.add_component(EventComponent, EventComponent())
+        entity.add_component(HistoryComponent, HistoryComponent())
         self.entities.append(entity)
         return entity
 
@@ -118,15 +148,54 @@ class ECS:
     def list_entities(self):
         return [entity.name for entity in self.entities]
 
-# Example usage:
-if __name__ == "__main__":
-    ecs = ECS()
-    # Load all *_analysis.json files in the current directory
-    for fname in os.listdir(os.path.dirname(__file__)):
-        if fname.endswith("_analysis.json"):
-            ecs.load_from_json(os.path.join(os.path.dirname(__file__), fname))
-    print("Loaded entities:", ecs.list_entities())
-    # Print info for each entity
-    for entity in ecs.entities:
-        desc = entity.get_component(DescriptionComponent).description
-        print(f"\nEntity: {entity.name}\nDescription: {desc}")
+# --- Example Systems (see systems.py for more) ---
+
+class InputPromptSystem:
+    def __init__(self, ecs):
+        self.ecs = ecs
+
+    def run(self):
+        print("=== Input Prompt System ===")
+        for entity in self.ecs.entities:
+            input_comp = entity.get_component(InputComponent)
+            if input_comp and input_comp.inputs:
+                print(f"\nEntity: {entity.name}")
+                for inp in input_comp.inputs:
+                    print(f"  - {inp.get('description', 'Input required')}")
+
+class OutputDisplaySystem:
+    """Displays all outputs for each entity."""
+    def __init__(self, ecs):
+        self.ecs = ecs
+
+    def run(self):
+        print("=== Output Display System ===")
+        for entity in self.ecs.entities:
+            output_comp = entity.get_component(OutputComponent)
+            if output_comp and output_comp.outputs:
+                print(f"\nEntity: {entity.name}")
+                for out in output_comp.outputs:
+                    desc = out.get('description', 'Output')
+                    out_type = out.get('type', 'unknown')
+                    print(f"  - [{out_type}] {desc}")
+            else:
+                print(f"\nEntity: {entity.name} has no outputs.")
+
+class StatusUpdateSystem:
+    """Allows updating and displaying the status of entities."""
+    def __init__(self, ecs):
+        self.ecs = ecs
+
+    def run(self):
+        print("=== Status Update System ===")
+        for entity in self.ecs.entities:
+            status_comp = entity.get_component(StatusComponent)
+            current_status = status_comp.status if status_comp else "unknown"
+            print(f"\nEntity: {entity.name} (Current status: {current_status})")
+            # Prompt user for a new status (or press Enter to keep current)
+            new_status = input(f"Enter new status for {entity.name} (or press Enter to keep '{current_status}'): ").strip()
+            if new_status and status_comp:
+                status_comp.status = new_status
+                print(f"Status for {entity.name} updated to '{new_status}'")
+            else:
+                print(f"Status for {entity.name} remains '{current_status}'")
