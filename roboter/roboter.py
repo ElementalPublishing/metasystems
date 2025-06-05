@@ -1,3 +1,11 @@
+"""
+roboter.py
+
+A meta system for analyzing robots.txt files and common subdomains for a given domain.
+- Usable as a CLI tool or as a library (import main or Roboter).
+- Respects robots.txt rules and crawl-delay.
+"""
+
 import requests
 from urllib.parse import urlparse
 import socket
@@ -214,6 +222,5 @@ if __name__ == "__main__":
     print("NOTICE: This tool checks robots.txt and will not crawl if your user-agent or all bots are disallowed.")
     print("It also respects crawl-delay and path rules. You are responsible for complying with all applicable laws and the website's Terms of Service.\n")
     url = input("Enter a website URL (any page or domain): ").strip()
-    roboter = Roboter(url)
-    roboter.print_rules()
+    main(url)
     input("\nPress Enter to exit...")
