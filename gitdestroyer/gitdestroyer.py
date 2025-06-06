@@ -26,16 +26,22 @@ def regenerate_cython():
                 run(f"cython {pyx_path}")
 
 def commit_all(msg):
-    run("git add .")
-    run(f'git commit -m "{msg}"')
+    run("git add .", check=True)
+    # Allow git commit to fail if there's nothing to commit
+    try:
+        run(f'git commit -m "{msg}"', check=True)
+    except subprocess.CalledProcessError as e:
+        if "nothing to commit" in e.stderr or "nothing added to commit" in e.stderr:
+            print("Nothing to commit.")
+        else:
+            raise
 
 def tag_version(version):
     run(f"git tag {version}")
     run(f"git push origin {version}")
 
 def build():
-    run("python -m build --sdist")
-    run("python -m build --wheel")
+    run("python -m build --sdist --wheel --no-isolation")
 
 def main():
     check_uncommitted()
