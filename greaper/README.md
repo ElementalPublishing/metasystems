@@ -104,7 +104,7 @@ greaper/
 │   ├── filewalker.py               # File/directory traversal, ignore/include logic
 │   ├── output.py                   # Output formatting (plain, JSON, CSV, Markdown)
 │   ├── archive.py                  # Archive/package support (.zip, .tar, .whl, etc.)
-│   ├── interactive.py              # Interactive and batch replace logic
+│   ├── integration.py              # Integraton and batch replace logic
 │   ├── syntax.py                   # Syntax-aware search/tokenization
 │   ├── utils.py                    # General helpers (timing, logging, etc.)
 │   └── algorithms/                 # Algorithms for fuzzy, scoring, etc.
