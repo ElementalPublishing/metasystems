@@ -89,3 +89,48 @@ MIT License
 ## Author
 
 Wesley Alexander Houser
+
+---
+
+## Directory Structure
+
+greaper/
+│
+├── greaper/                        # Main package
+│   ├── __init__.py
+│   ├── cli.py                      # Command-line interface
+│   ├── gui_textual.py              # Textual TUI interface
+│   ├── core.py                     # Core search logic (calls Cython where needed)
+│   ├── filewalker.py               # File/directory traversal, ignore/include logic
+│   ├── output.py                   # Output formatting (plain, JSON, CSV, Markdown)
+│   ├── archive.py                  # Archive/package support (.zip, .tar, .whl, etc.)
+│   ├── interactive.py              # Interactive and batch replace logic
+│   ├── syntax.py                   # Syntax-aware search/tokenization
+│   ├── utils.py                    # General helpers (timing, logging, etc.)
+│   └── algorithms/                 # Algorithms for fuzzy, scoring, etc.
+│       ├── __init__.py
+│       ├── fuzzy.py                # Fuzzy matching (Levenshtein, etc.)
+│       └── tokenization.py         # Tokenization for syntax-aware search
+│
+├── cython_ext/                     # Cython/C extensions for speed
+│   ├── __init__.py
+│   ├── search_cython.pyx           # Cython-accelerated search loop
+│   ├── fuzzy_cython.pyx            # Cython-accelerated fuzzy matching
+│   └── replace_cython.pyx          # Cython-accelerated batch replace
+│
+├── tests/                          # Unit and integration tests
+│   ├── __init__.py
+│   ├── test_core.py
+│   ├── test_filewalker.py
+│   ├── test_output.py
+│   ├── test_archive.py
+│   ├── test_interactive.py
+│   ├── test_syntax.py
+│   └── test_algorithms.py
+│
+├── greaper_theme.css               # Default Textual CSS theme
+├── README.md
+├── LICENSE
+├── setup.py                        # For pip install
+├── pyproject.toml                  # For modern builds
+└── requirements.txt
