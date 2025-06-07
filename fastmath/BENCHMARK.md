@@ -83,8 +83,14 @@ This report summarizes the correctness and performance of your `fastmath` Cython
 - **cdiv**: PASS
 - **cabs**: PASS
 - **cconj**: PASS
+- **mat_pow**: PASS
+- **integrate**: PASS
+- **set_union**: PASS
+- **set_intersection**: PASS
+- **set_difference**: PASS
+- **set_symmetric_difference**: PASS
 
-**Summary:** 76 passed, 3 failed.
+**Summary:** 82 passed, 3 failed.
 > :warning: Some functions failed correctness checks. Review your Cython implementations for logic or type errors.
 
 ## Performance Benchmark
@@ -93,90 +99,96 @@ The table below shows the time taken (in seconds) by each function in Python and
 
 | Function | Python (s) | fastmath (s) | Speedup | Note |
 |---|---|---|---|---|
-| clamp_array | 14.957860 | 0.265150 | 56.41x |  |
-| is_prime | 0.882364 | 0.022275 | 39.61x |  |
-| smoothstep | 0.032356 | 0.003138 | 10.31x |  |
-| array_max | 0.869554 | 0.104443 | 8.33x |  |
-| array_min | 0.841121 | 0.104949 | 8.01x |  |
-| sum_array | 0.508741 | 0.066150 | 7.69x |  |
-| mean_array | 0.524799 | 0.071148 | 7.38x |  |
-| variance_array | 9.266637 | 1.307181 | 7.09x |  |
-| saturate | 0.015174 | 0.003057 | 4.96x |  |
-| safe_log | 0.014960 | 0.003664 | 4.08x |  |
-| geometric_mean | 0.058727 | 0.015984 | 3.67x |  |
-| harmonic_mean | 0.056691 | 0.015592 | 3.64x |  |
-| wrap_angle_rad | 0.009511 | 0.002781 | 3.42x |  |
-| lcm | 0.032488 | 0.010410 | 3.12x |  |
-| distance3d | 0.022316 | 0.007346 | 3.04x |  |
-| gcd | 0.025768 | 0.009285 | 2.78x |  |
-| nth_root | 0.010647 | 0.004419 | 2.41x |  |
-| dfactorial | 0.007878 | 0.003324 | 2.37x |  |
-| percent_change | 0.007403 | 0.003133 | 2.36x |  |
-| reciprocal | 0.005890 | 0.002731 | 2.16x |  |
-| sign | 0.006337 | 0.003043 | 2.08x |  |
-| wrap_angle_deg | 0.006228 | 0.003022 | 2.06x |  |
-| fmax | 0.005735 | 0.002878 | 1.99x |  |
-| safe_pow | 0.009098 | 0.004570 | 1.99x |  |
-| safe_div | 0.005739 | 0.003049 | 1.88x |  |
-| fmin | 0.005766 | 0.003218 | 1.79x |  |
-| round_nearest | 0.005307 | 0.003104 | 1.71x |  |
-| modinv | 0.024535 | 0.014522 | 1.69x |  |
-| cube | 0.004754 | 0.002819 | 1.69x |  |
-| cdiv | 0.006938 | 0.004268 | 1.63x |  |
-| square | 0.004357 | 0.002684 | 1.62x |  |
-| mycosh | 0.004975 | 0.003190 | 1.56x |  |
-| fract | 0.006232 | 0.004034 | 1.54x |  |
-| imin | 0.005741 | 0.003749 | 1.53x |  |
-| imax | 0.005593 | 0.003658 | 1.53x |  |
-| clamp | 0.014904 | 0.009902 | 1.51x |  |
-| hypot | 0.004799 | 0.003190 | 1.50x |  |
-| bit_shl | 0.005170 | 0.003440 | 1.50x |  |
-| cabs | 0.004279 | 0.002850 | 1.50x |  |
-| cconj | 0.004917 | 0.003357 | 1.46x |  |
-| bit_xor | 0.005046 | 0.003546 | 1.42x |  |
-| bit_shr | 0.005263 | 0.003699 | 1.42x |  |
-| power | 0.005909 | 0.004398 | 1.34x |  |
-| add | 0.004674 | 0.003520 | 1.33x |  |
-| sub | 0.004735 | 0.003590 | 1.32x |  |
-| step | 0.004307 | 0.003298 | 1.31x |  |
-| mysinh | 0.004390 | 0.003375 | 1.30x |  |
-| bit_and | 0.004902 | 0.003774 | 1.30x |  |
-| bit_not | 0.004528 | 0.003488 | 1.30x |  |
-| mytanh | 0.004748 | 0.003685 | 1.29x |  |
-| bit_or | 0.004796 | 0.003767 | 1.27x |  |
-| cadd | 0.004717 | 0.003724 | 1.27x |  |
-| fmodulus | 0.007736 | 0.006209 | 1.25x |  |
-| myasinh | 0.004463 | 0.003711 | 1.20x |  |
-| myatanh | 0.004326 | 0.003616 | 1.20x |  |
-| csub | 0.005256 | 0.004442 | 1.18x |  |
-| cmul | 0.004836 | 0.004138 | 1.17x |  |
-| mycos | 0.006475 | 0.005674 | 1.14x |  |
-| mylog | 0.006464 | 0.005710 | 1.13x |  |
-| mysqrt | 0.006126 | 0.005576 | 1.10x |  |
-| myexp | 0.006129 | 0.005804 | 1.06x |  |
-| deg2rad | 0.002770 | 0.002676 | 1.04x |  |
-| mysin | 0.006160 | 0.005962 | 1.03x |  |
-| myabs | 0.002763 | 0.002708 | 1.02x |  |
-| myceil | 0.002877 | 0.002840 | 1.01x |  |
-| mytan | 0.006610 | 0.006566 | 1.01x |  |
-| distance2d | 0.009287 | 0.009332 | 1.00x | WARNING: Cython overhead outweighs gain |
-| rad2deg | 0.002828 | 0.002841 | 1.00x | WARNING: Cython overhead outweighs gain |
-| distance2d | 0.009177 | 0.009286 | 0.99x | WARNING: Cython overhead outweighs gain |
-| fdiv | 0.005778 | 0.005977 | 0.97x | WARNING: Cython overhead outweighs gain |
-| myfloor | 0.002650 | 0.002745 | 0.97x | WARNING: Cython overhead outweighs gain |
-| myacosh | 0.005221 | 0.005478 | 0.95x | WARNING: Cython overhead outweighs gain |
-| imod | 0.005576 | 0.006206 | 0.90x | WARNING: Cython overhead outweighs gain |
-| factorial | 0.003175 | 0.003559 | 0.89x | WARNING: Cython overhead outweighs gain |
-| median | 5.765305 | 7.068398 | 0.82x | WARNING: Cython overhead outweighs gain |
-| mul | 0.004701 | 0.006111 | 0.77x | WARNING: Cython overhead outweighs gain |
-| fsub | 0.004278 | 0.005754 | 0.74x | WARNING: Cython overhead outweighs gain |
-| fadd | 0.004371 | 0.005928 | 0.74x | WARNING: Cython overhead outweighs gain |
-| fmul | 0.004416 | 0.006104 | 0.72x | WARNING: Cython overhead outweighs gain |
+| clamp_array | 15.544413 | 0.262749 | 59.16x |  |
+| is_prime | 0.893547 | 0.023595 | 37.87x |  |
+| smoothstep | 0.033632 | 0.003467 | 9.70x |  |
+| array_max | 0.881233 | 0.103838 | 8.49x |  |
+| array_min | 0.853999 | 0.106215 | 8.04x |  |
+| sum_array | 0.507272 | 0.067389 | 7.53x |  |
+| variance_array | 9.363794 | 1.322073 | 7.08x |  |
+| mean_array | 0.510046 | 0.072776 | 7.01x |  |
+| saturate | 0.015298 | 0.002925 | 5.23x |  |
+| safe_log | 0.015336 | 0.003693 | 4.15x |  |
+| harmonic_mean | 0.058839 | 0.015286 | 3.85x |  |
+| geometric_mean | 0.058602 | 0.016347 | 3.58x |  |
+| wrap_angle_rad | 0.009258 | 0.002903 | 3.19x |  |
+| lcm | 0.031522 | 0.010426 | 3.02x |  |
+| dfactorial | 0.008697 | 0.003225 | 2.70x |  |
+| gcd | 0.025465 | 0.009778 | 2.60x |  |
+| percent_change | 0.007559 | 0.002918 | 2.59x |  |
+| distance3d | 0.022083 | 0.008646 | 2.55x |  |
+| fract | 0.007300 | 0.002956 | 2.47x |  |
+| nth_root | 0.010018 | 0.004390 | 2.28x |  |
+| wrap_angle_deg | 0.006105 | 0.002719 | 2.25x |  |
+| safe_pow | 0.009428 | 0.004224 | 2.23x |  |
+| sign | 0.006675 | 0.003169 | 2.11x |  |
+| reciprocal | 0.005621 | 0.002850 | 1.97x |  |
+| safe_div | 0.005910 | 0.003066 | 1.93x |  |
+| fmin | 0.005854 | 0.003082 | 1.90x |  |
+| fmax | 0.005709 | 0.003018 | 1.89x |  |
+| imax | 0.006076 | 0.003445 | 1.76x |  |
+| cdiv | 0.006997 | 0.004005 | 1.75x |  |
+| hypot | 0.005142 | 0.002968 | 1.73x |  |
+| square | 0.004794 | 0.002865 | 1.67x |  |
+| modinv | 0.025426 | 0.015266 | 1.67x |  |
+| imin | 0.006178 | 0.003716 | 1.66x |  |
+| round_nearest | 0.005158 | 0.003180 | 1.62x |  |
+| bit_shr | 0.005311 | 0.003438 | 1.54x |  |
+| cube | 0.004658 | 0.003023 | 1.54x |  |
+| bit_not | 0.004701 | 0.003056 | 1.54x |  |
+| mat_pow | 0.202423 | 0.132544 | 1.53x |  |
+| clamp | 0.015226 | 0.010154 | 1.50x |  |
+| myasinh | 0.005330 | 0.003556 | 1.50x |  |
+| step | 0.004583 | 0.003072 | 1.49x |  |
+| add | 0.004968 | 0.003339 | 1.49x |  |
+| csub | 0.005344 | 0.003725 | 1.43x |  |
+| mysinh | 0.004414 | 0.003130 | 1.41x |  |
+| cabs | 0.004087 | 0.002918 | 1.40x |  |
+| power | 0.005937 | 0.004302 | 1.38x |  |
+| bit_or | 0.005202 | 0.003785 | 1.37x |  |
+| myatanh | 0.004455 | 0.003259 | 1.37x |  |
+| cconj | 0.004652 | 0.003439 | 1.35x |  |
+| bit_shl | 0.005173 | 0.003846 | 1.35x |  |
+| bit_and | 0.004773 | 0.003605 | 1.32x |  |
+| integrate | 12.062830 | 9.249572 | 1.30x |  |
+| mycosh | 0.004498 | 0.003539 | 1.27x |  |
+| cmul | 0.005003 | 0.003956 | 1.26x |  |
+| cadd | 0.005014 | 0.004010 | 1.25x |  |
+| sub | 0.004735 | 0.003802 | 1.25x |  |
+| bit_xor | 0.004926 | 0.003996 | 1.23x |  |
+| mytanh | 0.004552 | 0.003715 | 1.23x |  |
+| fmodulus | 0.007539 | 0.006167 | 1.22x |  |
+| myacosh | 0.005084 | 0.004414 | 1.15x |  |
+| set_difference | 0.022108 | 0.019283 | 1.15x |  |
+| set_intersection | 0.022439 | 0.019608 | 1.14x |  |
+| mylog | 0.006807 | 0.006063 | 1.12x |  |
+| set_symmetric_difference | 0.026565 | 0.024037 | 1.11x |  |
+| set_union | 0.025299 | 0.023171 | 1.09x |  |
+| mysin | 0.006244 | 0.005775 | 1.08x |  |
+| mytan | 0.006783 | 0.006359 | 1.07x |  |
+| myexp | 0.006085 | 0.005774 | 1.05x |  |
+| mycos | 0.006250 | 0.006004 | 1.04x |  |
+| factorial | 0.003559 | 0.003452 | 1.03x |  |
+| distance2d | 0.009411 | 0.009479 | 0.99x | WARNING: Cython overhead outweighs gain |
+| fdiv | 0.005766 | 0.005837 | 0.99x | WARNING: Cython overhead outweighs gain |
+| mysqrt | 0.005889 | 0.005992 | 0.98x | WARNING: Cython overhead outweighs gain |
+| myceil | 0.002819 | 0.002975 | 0.95x | WARNING: Cython overhead outweighs gain |
+| distance2d | 0.008863 | 0.009408 | 0.94x | WARNING: Cython overhead outweighs gain |
+| myfloor | 0.002630 | 0.002831 | 0.93x | WARNING: Cython overhead outweighs gain |
+| deg2rad | 0.002648 | 0.003006 | 0.88x | WARNING: Cython overhead outweighs gain |
+| rad2deg | 0.002603 | 0.002995 | 0.87x | WARNING: Cython overhead outweighs gain |
+| myabs | 0.002592 | 0.002991 | 0.87x | WARNING: Cython overhead outweighs gain |
+| imod | 0.005238 | 0.006416 | 0.82x | WARNING: Cython overhead outweighs gain |
+| median | 5.881594 | 7.207711 | 0.82x | WARNING: Cython overhead outweighs gain |
+| fadd | 0.004820 | 0.006238 | 0.77x | WARNING: Cython overhead outweighs gain |
+| fmul | 0.004139 | 0.006014 | 0.69x | WARNING: Cython overhead outweighs gain |
+| mul | 0.004597 | 0.006696 | 0.69x | WARNING: Cython overhead outweighs gain |
+| fsub | 0.004173 | 0.006549 | 0.64x | WARNING: Cython overhead outweighs gain |
 
 ## Analysis & Recommendations
 
-- **66 functions** ran faster with Cython (`fastmath`) than with pure Python.
-- **13 functions** ran slower with Cython. For these, the overhead of calling a Cython function outweighs any speed gain. This is typical for very simple operations (like single multiplications or additions).
+- **70 functions** ran faster with Cython (`fastmath`) than with pure Python.
+- **15 functions** ran slower with Cython. For these, the overhead of calling a Cython function outweighs any speed gain. This is typical for very simple operations (like single multiplications or additions).
 
 - :rocket: **Use Cython for functions with significant computation, loops, or array processing.**
 - :bulb: **For trivial math (e.g., `a * b`), stick with plain Python.** Cython is best for heavy lifting, not for single operations.

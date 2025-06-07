@@ -130,6 +130,18 @@ def python_modinv(a, m):
 def fastmath_modinv(a, m):
     return fastmath.modinv(a, m)
 
+def python_sieve(n):
+    sieve = [True] * (n+1)
+    sieve[0:2] = [False, False]
+    for i in range(2, int(n**0.5)+1):
+        if sieve[i]:
+            for j in range(i*i, n+1, i):
+                sieve[j] = False
+    return [i for i, is_prime in enumerate(sieve) if is_prime]
+
+def fastmath_sieve(n):
+    return fastmath.sieve(n)  # You need to implement this in your fastmath.pyx
+
 def check_correctness(func1, func2, args, tol=1e-9):
     result1 = func1(*args)
     result2 = func2(*args)
@@ -231,6 +243,12 @@ def main():
         ("cdiv", lambda a, b: a / b if b != 0 else 0, fastmath.cdiv, (1.0+2.0j, 3.0+4.0j)),
         ("cabs", abs, fastmath.cabs, (3.0+4.0j,)),
         ("cconj", lambda a: a.conjugate(), fastmath.cconj, (1.0+2.0j,)),
+        ("mat_pow", python_mat_pow, fastmath_mat_pow, ([[2, 3], [1, 4]], 5)),
+        ("integrate", python_integrate, fastmath_integrate, (lambda x: x**2, 0, 1, 1000)),
+        ("set_union", python_set_union, fastmath.set_union, ([1,2,3], [3,4,5])),
+        ("set_intersection", python_set_intersection, fastmath.set_intersection, ([1,2,3], [3,4,5])),
+        ("set_difference", python_set_difference, fastmath.set_difference, ([1,2,3], [3,4,5])),
+        ("set_symmetric_difference", python_set_symmetric_difference, fastmath.set_symmetric_difference, ([1,2,3], [3,4,5])),
     ]
 
     # Run benchmarks and collect results
@@ -323,6 +341,52 @@ def main():
     # Write to BENCHMARK.md with UTF-8 encoding
     with open("BENCHMARK.md", "w", encoding="utf-8") as f:
         f.write("\n".join(report_lines) + "\n")
+
+def python_set_union(a, b):
+    return set(a) | set(b)
+
+def python_set_intersection(a, b):
+    return set(a) & set(b)
+
+def python_set_difference(a, b):
+    return set(a) - set(b)
+
+def python_set_symmetric_difference(a, b):
+    return set(a) ^ set(b)
+
+def python_mat_pow(mat, power):
+    result = [[1, 0], [0, 1]]
+    base = [row[:] for row in mat]
+    while power:
+        if power % 2:
+            result = [
+                [result[0][0]*base[0][0] + result[0][1]*base[1][0], result[0][0]*base[0][1] + result[0][1]*base[1][1]],
+                [result[1][0]*base[0][0] + result[1][1]*base[1][0], result[1][0]*base[0][1] + result[1][1]*base[1][1]]
+            ]
+        base = [
+            [base[0][0]*base[0][0] + base[0][1]*base[1][0], base[0][0]*base[0][1] + base[0][1]*base[1][1]],
+            [base[1][0]*base[0][0] + base[1][1]*base[1][0], base[1][0]*base[0][1] + base[1][1]*base[1][1]]
+        ]
+        power //= 2
+    return result
+
+def fastmath_mat_pow(mat, power):
+    return fastmath.mat_pow(mat, power)
+
+def python_integrate(f, a, b, n):
+    # Simpson's rule
+    if n % 2 == 1:
+        n += 1
+    h = (b - a) / n
+    s = f(a) + f(b)
+    for i in range(1, n, 2):
+        s += 4 * f(a + i * h)
+    for i in range(2, n, 2):
+        s += 2 * f(a + i * h)
+    return s * h / 3
+
+def fastmath_integrate(f, a, b, n):
+    return fastmath.integrate(f, a, b, n)
 
 if __name__ == "__main__":
     main()

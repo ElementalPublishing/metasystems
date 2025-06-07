@@ -7,33 +7,96 @@ from libc.math cimport (
 from libc.stdlib cimport rand, srand, RAND_MAX
 
 # --- Arithmetic ---
-cpdef int add(int a, int b): return a + b
-cpdef int sub(int a, int b): return a - b
-cpdef int mul(int a, int b): return a * b
+cpdef int add(int a, int b):
+    """
+    Add two 32-bit integers.
+    Inputs must be in the range -2**31 to 2**31-1.
+    """
+    return a + b
 
-cpdef double fadd(double a, double b): return a + b
-cpdef double fsub(double a, double b): return a - b
-cpdef double fmul(double a, double b): return a * b
+cpdef int sub(int a, int b):
+    """
+    Subtract two 32-bit integers.
+    Inputs must be in the range -2**31 to 2**31-1.
+    """
+    return a - b
+
+cpdef int mul(int a, int b):
+    """
+    Multiply two 32-bit integers.
+    Inputs must be in the range -2**31 to 2**31-1.
+    """
+    return a * b
+
+cpdef double fadd(double a, double b):
+    """
+    Add two floating-point numbers.
+    """
+    return a + b
+
+cpdef double fsub(double a, double b):
+    """
+    Subtract two floating-point numbers.
+    """
+    return a - b
+
+cpdef double fmul(double a, double b):
+    """
+    Multiply two floating-point numbers.
+    """
+    return a * b
 
 cpdef double fdiv(double a, double b):
+    """
+    Divide two floating-point numbers.
+    Returns nan if b == 0.
+    """
     if b == 0:
         return float('nan')
     return a / b
 
 cpdef int imod(int a, int b):
+    """
+    Integer modulus (remainder).
+    Inputs must be in the range -2**31 to 2**31-1.
+    Returns 0 if b == 0.
+    """
     if b == 0:
         return 0
     return a % b
 
 cpdef double fmodulus(double a, double b):
+    """
+    Floating-point modulus (remainder).
+    Returns nan if b == 0.
+    """
     if b == 0:
         return float('nan')
     return fmod(a, b)
 
-cpdef int imin(int a, int b): return a if a < b else b
-cpdef int imax(int a, int b): return a if a > b else b
-cpdef double fmin(double a, double b): return a if a < b else b
-cpdef double fmax(double a, double b): return a if a > b else b
+cpdef int imin(int a, int b):
+    """
+    Minimum of two 32-bit integers.
+    """
+    return a if a < b else b
+
+cpdef int imax(int a, int b):
+    """
+    Maximum of two 32-bit integers.
+    """
+    return a if a > b else b
+
+cpdef double fmin(double a, double b):
+    """
+    Minimum of two floating-point numbers.
+    """
+    return a if a < b else b
+
+cpdef double fmax(double a, double b):
+    """
+    Maximum of two floating-point numbers.
+    """
+    return a if a > b else b
 
 # --- Powers and Roots ---
 cpdef double square(double x): return x * x
@@ -892,3 +955,78 @@ cpdef int modinv(int a, int m):
     if x < 0:
         x += m0
     return x
+
+# --- Complex Math Benchmarks ---
+
+# 1. Sieve of Eratosthenes (returns Python list of primes up to n)
+cpdef list sieve(int n):
+    """
+    Return a list of all primes <= n using the Sieve of Eratosthenes.
+    """
+    if n < 2:
+        return []
+    cdef int i, j
+    sieve = [True] * (n + 1)
+    sieve[0] = False
+    sieve[1] = False
+    for i in range(2, int(sqrt(n)) + 1):
+        if sieve[i]:
+            for j in range(i * i, n + 1, i):
+                sieve[j] = False
+    return [i for i in range(2, n + 1) if sieve[i]]
+
+# 2. 2x2 Matrix Exponentiation (returns Python list of lists)
+cpdef list mat_pow(list mat, int power):
+    """
+    Raise a 2x2 matrix (as list of lists) to an integer power.
+    Example: mat_pow([[1,1],[1,0]], 10)
+    """
+    cdef int i, j
+    cdef list result = [[1, 0], [0, 1]]
+    cdef list base = [[mat[0][0], mat[0][1]], [mat[1][0], mat[1][1]]]
+    while power:
+        if power % 2:
+            result = [
+                [result[0][0]*base[0][0] + result[0][1]*base[1][0], result[0][0]*base[0][1] + result[0][1]*base[1][1]],
+                [result[1][0]*base[0][0] + result[1][1]*base[1][0], result[1][0]*base[0][1] + result[1][1]*base[1][1]]
+            ]
+        base = [
+            [base[0][0]*base[0][0] + base[0][1]*base[1][0], base[0][0]*base[0][1] + base[0][1]*base[1][1]],
+            [base[1][0]*base[0][0] + base[1][1]*base[1][0], base[1][0]*base[0][1] + base[1][1]*base[1][1]]
+        ]
+        power //= 2
+    return result
+
+# 3. Numerical Integration (Simpson's Rule)
+cpdef double integrate(object f, double a, double b, int n):
+    """
+    Numerically integrate f(x) from a to b using Simpson's rule with n intervals.
+    f must be a Python callable.
+    """
+    if n % 2 == 1:
+        n += 1  # Simpson's rule requires even n
+    cdef double h = (b - a) / n
+    cdef double s = f(a) + f(b)
+    cdef int i
+    for i in range(1, n, 2):
+        s += 4 * f(a + i * h)
+    for i in range(2, n, 2):
+        s += 2 * f(a + i * h)
+    return s * h / 3
+
+# --- Set Operations ---
+cpdef set set_union(object a, object b):
+    """Return the union of two sets or iterables."""
+    return set(a) | set(b)
+
+cpdef set set_intersection(object a, object b):
+    """Return the intersection of two sets or iterables."""
+    return set(a) & set(b)
+
+cpdef set set_difference(object a, object b):
+    """Return the difference of two sets or iterables."""
+    return set(a) - set(b)
+
+cpdef set set_symmetric_difference(object a, object b):
+    """Return the symmetric difference of two sets or iterables."""
+    return set(a) ^ set(b)
