@@ -8,10 +8,10 @@ It combines the speed and flexibility of classic grep with modern features for c
 ## 🚀 Goals & Milestones
 
 ### 1. Core CLI and Search Engine
-- [ ] Design command-line interface (CLI) and help system
-- [ ] Implement basic regex search
-- [ ] Add fuzzy search capability (using optimized algorithms)
-- [ ] Support case-insensitive and whole-word options
+- [x] Design command-line interface (CLI) and help system
+- [x] Implement basic regex search
+- [x] Add fuzzy search capability (using optimized algorithms)
+- [x] Support case-insensitive and whole-word options
 
 ### 2. File & Directory Traversal
 - [ ] Implement recursive file/directory traversal
