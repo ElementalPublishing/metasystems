@@ -3,6 +3,7 @@ from textual.widgets import Header, Footer, Input, Button, Static, DataTable, Se
 from textual.containers import Container, Horizontal
 from textual.reactive import reactive
 from textual import events
+from textual.screen import ModalScreen
 
 THEMES = {
     "John Wick": {
@@ -46,6 +47,33 @@ THEMES = {
         "table_match": "#fd971f",
     },
 }
+
+class GreaperHeader(Static):
+    DEFAULT_CSS = """
+    GreaperHeader {
+        height: 3;
+        background: #16161e;
+        color: #00bfff;
+        text-style: bold;
+        content-align: center middle;
+        border-bottom: solid #ff0080;
+    }
+    """
+    def compose(self):
+        yield Static("🐶 Greaper — John Wick Mode", id="header_title")
+
+class GreaperFooter(Static):
+    DEFAULT_CSS = """
+    GreaperFooter {
+        height: 2;
+        background: #16161e;
+        color: #ff0080;
+        content-align: center middle;
+        border-top: solid #00bfff;
+    }
+    """
+    def compose(self):
+        yield Static("Type 'exit' to quit | Theme: John Wick", id="footer_text")
 
 class GreaperApp(App):
     CSS_PATH = "greaper_theme.css"
@@ -96,7 +124,7 @@ class GreaperApp(App):
         )
 
     def compose(self) -> ComposeResult:
-        yield Header(show_clock=True)
+        yield GreaperHeader()
         with Container():
             with Horizontal():
                 yield Input(placeholder="Enter search pattern...", id="search_input")
@@ -111,9 +139,14 @@ class GreaperApp(App):
                 yield Checkbox("Regex", id="regex_checkbox")
                 yield Checkbox("Fuzzy", id="fuzzy_checkbox")
                 yield Checkbox("Syntax Aware", id="syntax_checkbox")
+                yield Checkbox("Whole Word", id="wholeword_checkbox")
+                yield Input(placeholder="Context lines (e.g. 2)", id="context_input")
+                yield Input(placeholder="Include globs (e.g. *.py *.md)", id="include_input")
+                yield Input(placeholder="Exclude globs (e.g. *.log *.tmp)", id="exclude_input")
+                yield Input(placeholder="Max results (e.g. 1000)", id="maxresults_input")
             yield Static("Results:", id="results_label")
             yield DataTable(id="results_table")
-        yield Footer()
+        yield GreaperFooter()
 
     async def on_mount(self):
         self.update_theme()
@@ -131,7 +164,7 @@ class GreaperApp(App):
             else:
                 self.notify("[INFO] Using pure Python fuzzy backend.", timeout=3)
         except Exception as e:
-            self.notify(f"[ERROR] Could not determine fuzzy backend: {e}", timeout=3)
+            await self.push_screen(ErrorModal(f"[ERROR] Could not determine fuzzy backend: {e}"))
 
     async def on_button_pressed(self, event: Button.Pressed):
         if event.button.id == "search_btn":
@@ -144,10 +177,10 @@ class GreaperApp(App):
         self.theme_name = event.value
         self._current_theme = THEMES[self.theme_name]
         self.update_theme()
-        self.query_one(Header).styles.background = self._current_theme["background"]
-        self.query_one(Header).styles.color = self._current_theme["primary"]
-        self.query_one(Footer).styles.background = self._current_theme["background"]
-        self.query_one(Footer).styles.color = self._current_theme["primary"]
+        self.query_one(GreaperHeader).styles.background = self._current_theme["background"]
+        self.query_one(GreaperHeader).styles.color = self._current_theme["primary"]
+        self.query_one(GreaperFooter).styles.background = self._current_theme["background"]
+        self.query_one(GreaperFooter).styles.color = self._current_theme["accent"]
         self.query_one("#results_label", Static).styles.color = self._current_theme["accent"]
 
     async def perform_search(self):
@@ -155,15 +188,27 @@ class GreaperApp(App):
 
         pattern = self.query_one("#search_input", Input).value
         if not pattern:
-            self.notify("Please enter a search pattern.", timeout=2)
+            await self.push_screen(ErrorModal("Please enter a search pattern."))
             return
 
         case = self.query_one("#case_checkbox", Checkbox).value
         regex = self.query_one("#regex_checkbox", Checkbox).value
         fuzzy = self.query_one("#fuzzy_checkbox", Checkbox).value
         syntax_aware = self.query_one("#syntax_checkbox", Checkbox).value
+        whole_word = self.query_one("#wholeword_checkbox", Checkbox).value
 
         path = self.path if self.path else "."
+
+        try:
+            context = int(self.query_one("#context_input", Input).value)
+        except ValueError:
+            context = 0
+        include = self.query_one("#include_input", Input).value.split() or ["*"]
+        exclude = self.query_one("#exclude_input", Input).value.split() or []
+        try:
+            max_results = int(self.query_one("#maxresults_input", Input).value)
+        except ValueError:
+            max_results = 1000
 
         try:
             results = search_files(
@@ -171,15 +216,16 @@ class GreaperApp(App):
                 path=path,
                 fuzzy=fuzzy,
                 ignore_case=case,
-                word=regex,
-                context=self.context,
-                include=self.include,
-                exclude=self.exclude,
-                max_results=self.max_results,
+                word=whole_word,
+                context=context,
+                include=include,
+                exclude=exclude,
+                max_results=max_results,
                 syntax_aware=syntax_aware,
+                regex=regex,  # Only if your backend supports it!
             )
         except Exception as e:
-            self.notify(f"Search error: {e}", timeout=4)
+            await self.push_screen(ErrorModal(f"Search error: {e}"))
             return
 
         self.search_results = results
@@ -210,6 +256,19 @@ class GreaperApp(App):
     async def on_key(self, event: events.Key):
         if event.key in ("ctrl+c", "q"):
             await self.action_quit()
+
+class ErrorModal(ModalScreen):
+    def __init__(self, message: str):
+        super().__init__()
+        self.message = message
+
+    def compose(self):
+        yield Static(self.message, id="error_message")
+        yield Button("Close", id="close_error")
+
+    async def on_button_pressed(self, event):
+        if event.button.id == "close_error":
+            await self.app.pop_screen()
 
 if __name__ == "__main__":
     GreaperApp().run()

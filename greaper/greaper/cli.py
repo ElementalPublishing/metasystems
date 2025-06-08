@@ -82,56 +82,50 @@ def search_command(args):
     print_backend_info()
 
     # Step 1: Pattern
-    pattern = args.pattern
-    if not pattern:
-        print("\nWhat would you like to search for?")
-        pattern = input("Enter search pattern (e.g. 'def ', 'TODO', 'main'): ").strip()
+    while True:
+        pattern = args.pattern
         if not pattern:
-            print("No pattern entered. Exiting.")
-            return
+            print("\nWhat would you like to search for?")
+            print("Type 'back' to return to the previous menu, or 'exit' to quit.")
+            pattern = input("Enter search pattern:\n> ").strip()
+            if pattern.lower() == "exit":
+                print("Exiting Greaper.")
+                return
+            if pattern.lower() == "back":
+                print("Returning to main menu.")
+                return
+            if not pattern:
+                print("No pattern entered. Please enter a pattern, or type 'exit' to quit.")
+                continue
+        break
 
     # Step 2: Path
     path = args.path
     if not path:
         print("\nWhere do you want to search?")
-        path = input("Enter path to search (default: .): ").strip() or "."
+        print("Type 'back' to return to the previous step, or 'exit' to quit.")
+        path = input("Enter path to search (default: .):\n> ").strip() or "."
 
     # Step 3: Options (with ability to edit)
     print("\nSearch options:")
     options = [
-        ("Fuzzy search", args.fuzzy, "ON/OFF", bool),
-        ("Ignore case", args.ignore_case, "ON/OFF", bool),
-        ("Whole word", args.word, "ON/OFF", bool),
-        ("Context lines", args.context, "2", int),
-        ("Syntax aware", args.syntax_aware, "ON/OFF", bool),
-        ("Include globs", " ".join(args.include), "*.py *.md", str),
-        ("Exclude globs", " ".join(args.exclude), "*.log *.tmp", str),
-        ("Max results", args.max_results, "1000", int),
-        ("Color output", not args.no_color, "ON/OFF", bool),
+        ("fuzzy", args.fuzzy, "Use fuzzy search (y/n)", bool),
+        ("ignore_case", args.ignore_case, "Case-insensitive search (y/n)", bool),
+        ("word", args.word, "Match whole words only (y/n)", bool),
+        ("context", args.context, "Show N lines of context", int),
+        ("syntax_aware", args.syntax_aware, "Only match in comments/strings (y/n)", bool),
+        ("include", args.include, "Glob patterns to include (e.g. *.py *.md, space-separated)", list),
+        ("exclude", args.exclude, "Glob patterns to exclude (e.g. *.log *.tmp, space-separated)", list),
+        ("max_results", args.max_results, "Maximum number of results", int),
+        ("no_color", args.no_color, "Disable color output (y/n)", bool),
+        ("tui", args.tui if hasattr(args, "tui") else False, "Launch the Textual TUI interface (y/n)", bool),
     ]
-    for idx, (name, val, example, _) in enumerate(options, 1):
-        print(f"  {idx}. {name}: {val} (e.g. {example})")
-
-    print("\nWould you like to change any options? (y/N)")
-    if input().strip().lower() == "y":
-        for idx, (name, val, example, opt_type) in enumerate(options, 1):
-            if name in ["Include globs", "Exclude globs"]:
-                new_val = prompt_option(name, val, example)
-                if name == "Include globs":
-                    args.include = new_val.split()
-                else:
-                    args.exclude = new_val.split()
-            elif name == "Context lines":
-                args.context = prompt_option(name, val, example, int)
-            elif name == "Max results":
-                args.max_results = prompt_option(name, val, example, int)
-            elif name == "Color output":
-                args.no_color = not prompt_option(name, val, example, bool)
-            else:
-                setattr(args, name.lower().replace(" ", "_"), prompt_option(name, val, example, bool))
+    args_dict = interactive_prompt(options)
+    for k, v in args_dict.items():
+        setattr(args, k, v)
 
     # Step 4: Confirm
-    print("\nReady to search with these settings?")
+    print("\nReady to search with these settings:")
     print(f"  Pattern:      {pattern}")
     print(f"  Path:         {path}")
     print(f"  Fuzzy:        {'ON' if args.fuzzy else 'OFF'}")
@@ -143,9 +137,22 @@ def search_command(args):
     print(f"  Exclude:      {' '.join(args.exclude)}")
     print(f"  Max results:  {args.max_results}")
     print(f"  Color:        {'OFF' if args.no_color else 'ON'}")
-    print("\nProceed? (Y/n)")
-    if input().strip().lower() == "n":
+    print(f"  TUI:          {'ON' if args.tui else 'OFF'}")
+    print("\nProceed? (Y/n, or type 'back' to edit options, 'exit' to quit)")
+    confirm = input("> ").strip().lower()
+    if confirm == "exit":
+        print("Exiting Greaper.")
+        return
+    if confirm == "back":
+        return search_command(args)  # Restart options editing
+    if confirm == "n":
         print("Search cancelled.")
+        return
+
+    # Step 5: Run search or launch TUI
+    if hasattr(args, "tui") and args.tui:
+        from greaper.gui_textual import GreaperApp
+        GreaperApp.from_cli_args(args).run()
         return
 
     print(f"\n[CLI] Searching for '{pattern}' in '{path}' ...")
@@ -168,61 +175,180 @@ def search_command(args):
         print(f"[ERROR] Search failed: {e}")
 
 def replace_command(args):
-    """Handle the 'replace' command (future)."""
+    """Handle the 'replace' command interactively."""
+    print("\n[Replace Mode]")
+    options = [
+        ("pattern", args.pattern, "Pattern to search for", str),
+        ("replacement", args.replacement, "Replacement text", str),
+        ("path", args.path, "Path to search", str),
+        ("fuzzy", args.fuzzy, "Use fuzzy search (y/n)", bool),
+        ("ignore_case", args.ignore_case, "Case-insensitive search (y/n)", bool),
+        ("preview", args.preview, "Preview changes before applying (y/n)", bool),
+    ]
+    args_dict = interactive_prompt(options)
+    for k, v in args_dict.items():
+        setattr(args, k, v)
+
+    print("\nReady to replace with these settings:")
+    print(f"  Pattern:      {args.pattern}")
+    print(f"  Replacement:  {args.replacement}")
+    print(f"  Path:         {args.path}")
+    print(f"  Fuzzy:        {'ON' if args.fuzzy else 'OFF'}")
+    print(f"  Ignore case:  {'ON' if args.ignore_case else 'OFF'}")
+    print(f"  Preview:      {'ON' if args.preview else 'OFF'}")
+    print("\nProceed? (Y/n, or type 'back' to edit options, 'exit' to quit)")
+    confirm = input("> ").strip().lower()
+    if confirm == "exit":
+        print("Exiting Greaper.")
+        return
+    if confirm == "back":
+        return replace_command(args)
+    if confirm == "n":
+        print("Replace cancelled.")
+        return
+
     print(f"[CLI] Replace '{args.pattern}' with '{args.replacement}' in '{args.path}'")
     print(f"  Fuzzy: {args.fuzzy} | Ignore case: {args.ignore_case} | Preview: {args.preview}")
     # TODO: Implement replace logic
 
 def export_command(args):
-    """Handle the 'export' command (future)."""
+    """Handle the 'export' command interactively."""
+    print("\n[Export Mode]")
+    options = [
+        ("format", args.format, "Export format (json/csv/md)", str),
+    ]
+    args_dict = interactive_prompt(options)
+    for k, v in args_dict.items():
+        setattr(args, k, v)
+
+    print(f"\nReady to export results to {args.format} format.")
+    print("Proceed? (Y/n, or type 'back' to edit options, 'exit' to quit)")
+    confirm = input("> ").strip().lower()
+    if confirm == "exit":
+        print("Exiting Greaper.")
+        return
+    if confirm == "back":
+        return export_command(args)
+    if confirm == "n":
+        print("Export cancelled.")
+        return
+
     print(f"[CLI] Exporting results to {args.format} format")
     # TODO: Implement export logic
 
+def print_available_options():
+    print("\n[Greaper CLI Options]")
+    print("search   - Search for a pattern in files")
+    print("replace  - Replace a pattern in files (future)")
+    print("export   - Export search results (future)")
+    print("\n[Search Options]")
+    print("  pattern         Pattern to search for (regex or fuzzy)")
+    print("  path            Path to search (default: current directory)")
+    print("  -f, --fuzzy     Use fuzzy search")
+    print("  -i, --ignore-case   Case-insensitive search")
+    print("  -w, --word      Match whole words only")
+    print("  -C, --context   Show N lines of context")
+    print("  --syntax-aware  Only match in comments/strings (syntax aware)")
+    print("  --include       Glob patterns to include (e.g. *.py *.md)")
+    print("  --exclude       Glob patterns to exclude (e.g. *.log *.tmp)")
+    print("  --max-results   Maximum number of results")
+    print("  --no-color      Disable color output")
+    print("  --tui           Launch the Textual TUI interface")
+    print("\nType the command you want to use (e.g., 'search') or press Enter to exit.")
+
+def interactive_prompt(options):
+    """Prompt user for each option, using defaults, and handle 'back' and 'exit'."""
+    args = {}
+    idx = 0
+    while idx < len(options):
+        name, default, help_text, opt_type = options[idx]
+        # Special prompt for glob patterns
+        if name in ("include", "exclude"):
+            prompt = (
+                f"{name} [{ ' '.join(default) if default else '' }] "
+                "(space-separated glob patterns, e.g. *.py *.md)\n"
+                "Type 'back' to go to the previous option, or 'exit' to quit."
+            )
+        else:
+            prompt = (
+                f"{name} [{default}]"
+                f"{' (' + help_text + ')' if help_text and name not in ('include', 'exclude') else ''}\n"
+                "Type 'back' to go to the previous option, or 'exit' to quit."
+            )
+        prompt += "\n> "
+        val = input(prompt).strip()
+        if val.lower() == "exit":
+            print("Exiting Greaper.")
+            exit(0)
+        if val.lower() == "back":
+            if idx > 0:
+                idx -= 1
+                continue
+            else:
+                print("Already at the first option.")
+                continue
+        if not val:
+            val = default
+        if opt_type == bool:
+            val = str(val).lower() in ("1", "y", "yes", "on", "true")
+        elif opt_type == int:
+            try:
+                val = int(val)
+            except ValueError:
+                val = default
+        elif opt_type == list:
+            val = val.split() if val else default
+        args[name] = val
+        idx += 1
+    return args
+
 def main():
-    parser = argparse.ArgumentParser(
-        description="Greaper: Grep on Steroids — Fast, modern search for code and data.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-    )
-    subparsers = parser.add_subparsers(dest="command", required=True)
+    print_available_options()
+    user_cmd = input("> ").strip()
+    if not user_cmd:
+        print("Exiting Greaper.")
+        return
 
-    # Search command
-    search_parser = subparsers.add_parser("search", help="Search for a pattern in files.")
-    search_parser.add_argument("pattern", nargs="?", help="Pattern to search for (regex or fuzzy)")
-    search_parser.add_argument("path", nargs="?", default=".", help="Path to search (default: current directory)")
-    search_parser.add_argument("-f", "--fuzzy", action="store_true", help="Use fuzzy search")
-    search_parser.add_argument("-i", "--ignore-case", action="store_true", help="Case-insensitive search")
-    search_parser.add_argument("-w", "--word", action="store_true", help="Match whole words only")
-    search_parser.add_argument("-C", "--context", type=int, default=0, help="Show N lines of context")
-    search_parser.add_argument("--syntax-aware", action="store_true", help="Only match in comments/strings (syntax aware)")
-    search_parser.add_argument("--include", nargs="*", default=["*"], help="Glob patterns to include (e.g. *.py *.md)")
-    search_parser.add_argument("--exclude", nargs="*", default=[], help="Glob patterns to exclude (e.g. *.log *.tmp)")
-    search_parser.add_argument("--max-results", type=int, default=1000, help="Maximum number of results")
-    search_parser.add_argument("--no-color", action="store_true", help="Disable color output")
-    search_parser.add_argument("--tui", action="store_true", help="Launch the Textual TUI interface")
-    search_parser.set_defaults(func=search_command)
-
-    # Replace command (future)
-    replace_parser = subparsers.add_parser("replace", help="Replace a pattern in files.")
-    replace_parser.add_argument("pattern", help="Pattern to search for")
-    replace_parser.add_argument("replacement", help="Replacement text")
-    replace_parser.add_argument("path", nargs="?", default=".", help="Path to search (default: current directory)")
-    replace_parser.add_argument("-f", "--fuzzy", action="store_true", help="Use fuzzy search")
-    replace_parser.add_argument("-i", "--ignore-case", action="store_true", help="Case-insensitive search")
-    replace_parser.add_argument("--preview", action="store_true", help="Preview changes before applying")
-    replace_parser.set_defaults(func=replace_command)
-
-    # Export command (future)
-    export_parser = subparsers.add_parser("export", help="Export search results.")
-    export_parser.add_argument("format", choices=["json", "csv", "md"], help="Export format")
-    export_parser.set_defaults(func=export_command)
-
-    args = parser.parse_args()
-
-    if getattr(args, "tui", False) and args.command == "search":
-        from .gui_textual import GreaperApp
-        GreaperApp.from_cli_args(args).run()
+    import argparse
+    if user_cmd == "search":
+        options = [
+            ("pattern", "", "Pattern to search for (regex or fuzzy)", str),
+            ("path", ".", "Path to search", str),
+            ("fuzzy", False, "Use fuzzy search (y/n)", bool),
+            ("ignore_case", False, "Case-insensitive search (y/n)", bool),
+            ("word", False, "Match whole words only (y/n)", bool),
+            ("context", 0, "Show N lines of context", int),
+            ("syntax_aware", False, "Only match in comments/strings (y/n)", bool),
+            ("include", ["*"], "Glob patterns to include (e.g. *.py *.md, space-separated)", list),
+            ("exclude", [], "Glob patterns to exclude (e.g. *.log *.tmp, space-separated)", list),
+            ("max_results", 1000, "Maximum number of results", int),
+            ("no_color", False, "Disable color output (y/n)", bool),
+            ("tui", False, "Launch the Textual TUI interface (y/n)", bool),
+        ]
+        args_dict = interactive_prompt(options)
+        args = argparse.Namespace(**args_dict)
+        search_command(args)
+    elif user_cmd == "replace":
+        options = [
+            ("pattern", "", "Pattern to search for", str),
+            ("replacement", "", "Replacement text", str),
+            ("path", ".", "Path to search", str),
+            ("fuzzy", False, "Use fuzzy search (y/n)", bool),
+            ("ignore_case", False, "Case-insensitive search (y/n)", bool),
+            ("preview", False, "Preview changes before applying (y/n)", bool),
+        ]
+        args_dict = interactive_prompt(options)
+        args = argparse.Namespace(**args_dict)
+        replace_command(args)
+    elif user_cmd == "export":
+        options = [
+            ("format", "json", "Export format (json/csv/md)", str),
+        ]
+        args_dict = interactive_prompt(options)
+        args = argparse.Namespace(**args_dict)
+        export_command(args)
     else:
-        args.func(args)
+        print("Unknown command. Exiting.")
 
 if __name__ == "__main__":
     main()

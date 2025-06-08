@@ -1,7 +1,8 @@
 # Greaper: Grep on Steroids
 
 Greaper is a next-generation search tool for developers, data scientists, and power users.  
-It combines the speed and flexibility of classic grep with modern features for code, data, and package search.
+It combines the speed and flexibility of classic grep with modern features for code, data, and package search.  
+Now with a modern TUI, robust error handling, and extensible architecture.
 
 ---
 
@@ -14,12 +15,12 @@ It combines the speed and flexibility of classic grep with modern features for c
 - [x] Support case-insensitive and whole-word options
 
 ### 2. File & Directory Traversal
-- [ ] Implement recursive file/directory traversal
-- [ ] Add include/exclude pattern support
+- [x] Implement recursive file/directory traversal
+- [x] Add include/exclude pattern support
 - [ ] Integrate `.gitignore` and custom ignore files
 
 ### 3. Output and Usability
-- [ ] Show N lines before/after matches (context)
+- [x] Show N lines before/after matches (context)
 - [ ] Highlight matches in color
 - [ ] Add syntax highlighting for code files
 - [ ] Output results as plain text, JSON, CSV, or Markdown
@@ -37,6 +38,9 @@ It combines the speed and flexibility of classic grep with modern features for c
 - [ ] Support piping input/output
 
 ### 6. Advanced Search Features
+- [x] Regex search
+- [x] Fuzzy search
+- [x] Case-insensitive and whole-word options
 - [ ] Add syntax-aware search (e.g., only in comments/strings)
 - [ ] Implement parallel/multithreaded search for large projects
 - [ ] Presets and reusable search patterns
@@ -48,33 +52,58 @@ It combines the speed and flexibility of classic grep with modern features for c
 ### 8. Robustness & Professionalism
 - [ ] Write user and developer documentation
 - [ ] Create unit and integration tests for all modules
-- [ ] Ensure cross-platform compatibility (Windows, Linux, macOS)
+- [x] Ensure cross-platform compatibility (Windows, Linux, macOS)
 - [ ] Provide easy installation instructions
+
+---
+
+## ✨ Current Features
+
+- **Modern TUI** with theme support and persistent error dialogs
+- **Recursive search** with include/exclude globs
+- **Regex, fuzzy, and whole-word search** options
+- **Context lines** before/after matches
+- **Robust error handling** and user-friendly dialogs
+- **Cross-platform** support (Windows, Linux, macOS)
+- **John Wick import resolver** for reliable imports
+
+---
+
+## 🛣️ Roadmap & Next Steps
+
+- [ ] Match highlighting in TUI
+- [ ] Syntax highlighting for code files
+- [ ] Export results (plain text, JSON, CSV, Markdown)
+- [ ] `.gitignore` and custom ignore file support
+- [ ] Interactive review and batch replace
+- [ ] Archive/package search
+- [ ] Python API and editor integration
+- [ ] Documentation, tests, and easy install
 
 ---
 
 ## ⚡️ Performance & Algorithms
 
 - **Core performance-critical functions** (such as the main search loop, fuzzy matching, and batch replace) will be implemented or accelerated using **Cython** to generate `.c` files for maximum speed.
-- We will use or build optimized algorithms for:
+- We use or build optimized algorithms for:
   - Fuzzy search (e.g., Levenshtein distance, string similarity)
   - Pattern matching and scoring
   - Tokenization for syntax-aware search
-- Where possible, we will leverage existing high-performance libraries (like `rapidfuzz`) and only implement our own algorithms when necessary.
-- All performance-critical code will be organized in an `algorithms/` or `utils/` module, not a traditional math module, since the focus is on string processing and search algorithms.
+- Where possible, we leverage existing high-performance libraries (like `rapidfuzz`) and only implement our own algorithms when necessary.
+- All performance-critical code is organized in an `algorithms/` or `utils/` module, not a traditional math module, since the focus is on string processing and search algorithms.
 
 ---
 
 ## Why Use Greaper?
 
 - Fuzzy and regex search in one tool
-- Colorized, context-rich output
+- Colorized, context-rich output (coming soon)
 - Search inside archives and package files (.zip, .tar, .whl, .egg, .jar, .nupkg, etc.)
 - Optionally search inside installed Python packages and node_modules
-- Ignore patterns and .gitignore support
-- Interactive and batch replace modes
-- Output as JSON, CSV, or Markdown
-- Syntax-aware search for codebases
+- Ignore patterns and .gitignore support (coming soon)
+- Interactive and batch replace modes (planned)
+- Output as JSON, CSV, or Markdown (planned)
+- Syntax-aware search for codebases (planned)
 - Modern, interactive terminal UI powered by [Textual](https://github.com/Textualize/textual)
 - And more!
 
@@ -104,7 +133,7 @@ greaper/
 │   ├── filewalker.py               # File/directory traversal, ignore/include logic
 │   ├── output.py                   # Output formatting (plain, JSON, CSV, Markdown)
 │   ├── archive.py                  # Archive/package support (.zip, .tar, .whl, etc.)
-│   ├── integration.py              # Integraton and batch replace logic
+│   ├── integration.py              # Integration and batch replace logic
 │   ├── syntax.py                   # Syntax-aware search/tokenization
 │   ├── utils.py                    # General helpers (timing, logging, etc.)
 │   └── algorithms/                 # Algorithms for fuzzy, scoring, etc.
@@ -134,3 +163,9 @@ greaper/
 ├── setup.py                        # For pip install
 ├── pyproject.toml                  # For modern builds
 └── requirements.txt
+
+---
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release notes.

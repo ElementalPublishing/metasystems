@@ -1,6 +1,25 @@
+import os
+import sys
 import re
 from pathlib import Path
-from algorithms.fuzzy import similarity_ratio
+from greaper.algorithms.fuzzy import similarity_ratio
+from greaper.algorithms import regex as regex_alg
+
+# --- John Wick Import Resolver ---
+# Get the absolute path to this file's directory
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Get the root of the project (assuming greaper/greaper/core.py, so root is two levels up)
+project_root = os.path.abspath(os.path.join(current_dir, "..", ".."))
+
+# Ensure current_dir and project_root are in sys.path for imports
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+# Now you can import from anywhere in your project, regardless of where you run the script
+# --- End John Wick Import Resolver ---
 
 def is_text_file(filepath, blocksize=2048):
     """Robust check to skip binary files using heuristics and file extension."""
@@ -13,149 +32,12 @@ def is_text_file(filepath, blocksize=2048):
             chunk = f.read(blocksize)
             if b"\0" in chunk:
                 return False
-            # Heuristic: if >30% non-printable, likely binary
-            nontext = sum(1 for b in chunk if b < 9 or (b > 13 and b < 32) or b > 126)
-            if chunk and nontext / len(chunk) > 0.3:
-                return False
-        return True
+            # Heuristic: if >95% printable, treat as text
+            text_characters = bytearray({7,8,9,10,12,13,27} | set(range(0x20, 0x100)))
+            nontext = chunk.translate(None, text_characters)
+            return float(len(nontext)) / float(len(chunk) or 1) < 0.05
     except Exception:
         return False
-
-def file_matches_globs(filename, include_globs, exclude_globs):
-    """Advanced glob matching: supports full path, negation, and multiple patterns."""
-    from fnmatch import fnmatch
-    filename = str(filename)
-    included = any(fnmatch(filename, pat) for pat in include_globs)
-    excluded = any(fnmatch(filename, pat) for pat in exclude_globs)
-    return included and not excluded
-
-def detect_language(filepath):
-    """Guess language from file extension."""
-    ext = Path(filepath).suffix.lower()
-    mapping = {
-        ".py": "python",
-        ".js": "javascript",
-        ".ts": "typescript",
-        ".c": "c",
-        ".cpp": "cpp",
-        ".h": "c",
-        ".hpp": "cpp",
-        ".java": "java",
-        ".sh": "bash",
-        ".md": "markdown",
-        ".json": "json",
-        ".yml": "yaml",
-        ".yaml": "yaml",
-        ".toml": "toml",
-        ".ini": "ini",
-    }
-    return mapping.get(ext, "plain")
-
-def is_comment_or_string(line, language="python", in_multiline_string=[False]):
-    """
-    Advanced syntax-aware check for comments and strings.
-    Supports Python, JavaScript, C/C++, Java, Bash, Markdown, and can be expanded.
-    Tracks multi-line strings for Python and JS.
-    """
-    line_strip = line.strip()
-
-    # --- Python ---
-    if language == "python":
-        triple_quotes = ("'''", '"""')
-        # Multi-line string start/end
-        if not in_multiline_string[0]:
-            for tq in triple_quotes:
-                if line_strip.startswith(tq):
-                    if line_strip.count(tq) == 1:
-                        in_multiline_string[0] = tq
-                        return True
-        else:
-            if in_multiline_string[0] in line_strip:
-                in_multiline_string[0] = False
-            return True
-        # Single-line comment
-        if line_strip.startswith("#"):
-            return True
-        # Inline comment
-        if "#" in line_strip and not line_strip.startswith("#"):
-            return True
-        # String literal
-        if (line_strip.startswith("'") and line_strip.endswith("'") and len(line_strip) > 1) or \
-           (line_strip.startswith('"') and line_strip.endswith('"') and len(line_strip) > 1):
-            return True
-        # Assignment to string
-        if "=" in line_strip:
-            parts = line_strip.split("=")
-            if len(parts) == 2:
-                val = parts[1].strip()
-                if (val.startswith("'") and val.endswith("'")) or (val.startswith('"') and val.endswith('"')):
-                    return True
-        return False
-
-    # --- JavaScript/TypeScript ---
-    if language in ("js", "javascript", "ts", "typescript"):
-        # Multi-line comment
-        if not in_multiline_string[0]:
-            if line_strip.startswith("/*"):
-                in_multiline_string[0] = "/*"
-                return True
-        else:
-            if "*/" in line_strip:
-                in_multiline_string[0] = False
-            return True
-        # Single-line comment
-        if line_strip.startswith("//"):
-            return True
-        # String literals
-        if (line_strip.startswith("'") and line_strip.endswith("'")) or \
-           (line_strip.startswith('"') and line_strip.endswith('"')) or \
-           (line_strip.startswith("`") and line_strip.endswith("`")):
-            return True
-        return False
-
-    # --- C/C++/Java ---
-    if language in ("c", "cpp", "java"):
-        # Multi-line comment
-        if not in_multiline_string[0]:
-            if line_strip.startswith("/*"):
-                in_multiline_string[0] = "/*"
-                return True
-        else:
-            if "*/" in line_strip:
-                in_multiline_string[0] = False
-            return True
-        # Single-line comment
-        if line_strip.startswith("//"):
-            return True
-        # String literals
-        if (line_strip.startswith('"') and line_strip.endswith('"')):
-            return True
-        return False
-
-    # --- Bash/Shell ---
-    if language in ("sh", "bash"):
-        if line_strip.startswith("#"):
-            return True
-        if (line_strip.startswith("'") and line_strip.endswith("'")) or \
-           (line_strip.startswith('"') and line_strip.endswith('"')):
-            return True
-        return False
-
-    # --- Markdown ---
-    if language == "markdown":
-        if line_strip.startswith("```") or line_strip.startswith(">"):
-            return True
-        return False
-
-    # --- JSON/YAML/TOML/INI ---
-    if language in ("json", "yaml", "toml", "ini"):
-        # No comments or strings in JSON, but YAML/TOML/INI may have comments
-        if line_strip.startswith("#") or line_strip.startswith(";"):
-            return True
-        return False
-
-    # --- Default: not syntax aware ---
-    return False
 
 def search_files(
     pattern,
@@ -164,58 +46,61 @@ def search_files(
     ignore_case=False,
     word=False,
     context=0,
+    syntax_aware=False,
     include=None,
     exclude=None,
     max_results=1000,
-    fuzzy_threshold=0.75,
-    syntax_aware=False,
-    language=None,
+    regex=False,
 ):
     """
-    Search files for pattern. Yields (file, line_number, match_line, [context_before], [context_after]).
+    Search files for a pattern.
+    Returns a list of (file, line_number, match, context_before, context_after)
     """
-    if include is None:
-        include = ["*"]
-    if exclude is None:
-        exclude = []
-
-    flags = re.IGNORECASE if ignore_case else 0
-    regex = None
-    if not fuzzy:
-        regex_pattern = r"\b{}\b".format(re.escape(pattern)) if word else pattern
-        regex = re.compile(regex_pattern, flags)
+    include = include or ["*"]
+    exclude = exclude or []
+    root = Path(path)
+    files_to_search = set()
+    for inc in include:
+        files_to_search.update(root.rglob(inc))
+    # Remove excluded files
+    files_to_search = [
+        f for f in files_to_search
+        if all(not f.match(ex) for ex in exclude) and f.is_file() and is_text_file(f)
+    ]
 
     results = []
-    for filepath in Path(path).rglob("*"):
-        if not filepath.is_file():
-            continue
-        if not file_matches_globs(filepath.name, include, exclude):
-            continue
-        if not is_text_file(filepath):
-            continue
-        lang = language or detect_language(filepath)
-        in_multiline_string = [False]
+    pat_flags = re.IGNORECASE if ignore_case else 0
+
+    # Prepare regex pattern if needed
+    if regex:
         try:
-            with open(filepath, encoding="utf-8", errors="ignore") as f:
+            pat = re.compile(pattern, pat_flags)
+        except Exception as e:
+            raise ValueError(f"Invalid regex: {e}")
+    elif word:
+        pat = re.compile(rf"\b{re.escape(pattern)}\b", pat_flags)
+    else:
+        pat = re.compile(re.escape(pattern), pat_flags)
+
+    for file in files_to_search:
+        try:
+            with open(file, encoding="utf-8", errors="ignore") as f:
                 lines = f.readlines()
         except Exception:
             continue
-
-        for idx, line in enumerate(lines, 1):
-            match = False
-            if syntax_aware and not is_comment_or_string(line, language=lang, in_multiline_string=in_multiline_string):
-                continue
+        for i, line in enumerate(lines):
+            found = False
             if fuzzy:
-                score = similarity_ratio(pattern, line.strip())
-                if score >= fuzzy_threshold:
-                    match = True
+                # Use fuzzy match (very basic, can be improved)
+                if similarity_ratio(pattern, line) > 0.7:
+                    found = True
             else:
-                if regex.search(line):
-                    match = True
-            if match:
-                before = [lines[i].rstrip() for i in range(max(0, idx - context - 1), idx - 1)] if context > 0 else []
-                after = [lines[i].rstrip() for i in range(idx, min(len(lines), idx + context))] if context > 0 else []
-                results.append((str(filepath), idx, line.rstrip(), before, after))
+                if pat.search(line):
+                    found = True
+            if found:
+                before = lines[max(0, i-context):i] if context else []
+                after = lines[i+1:i+1+context] if context else []
+                results.append((str(file), i+1, line.strip(), [b.strip() for b in before], [a.strip() for a in after]))
                 if len(results) >= max_results:
                     return results
     return results

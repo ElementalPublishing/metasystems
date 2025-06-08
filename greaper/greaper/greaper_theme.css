@@ -54,3 +54,32 @@ Static#main {
     border: round #bb9af7;
 }
 
+GreaperHeader {
+    height: 3;
+    background: #16161e;
+    color: #00bfff;
+    text-style: bold;
+    content-align: center middle;
+    border-bottom: solid #ff0080;
+}
+
+GreaperFooter {
+    height: 2;
+    background: #16161e;
+    color: #ff0080;
+    content-align: center middle;
+    border-top: solid #00bfff;
+}
+
+Static#header_title {
+    color: #00bfff;
+    text-style: bold;
+    content-align: center middle;
+}
+
+Static#footer_text {
+    color: #ff0080;
+    text-style: bold;
+    content-align: center middle;
+}
+
