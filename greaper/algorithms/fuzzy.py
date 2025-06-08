@@ -1,5 +1,5 @@
 try:
-    from cython_ext.fuzzy_cython import levenshtein, similarity_ratio
+    from ..cython_ext.fuzzy_cython import levenshtein, similarity_ratio
 except ImportError:
     # Optional: fallback to pure Python if Cython extension is not built
     def levenshtein(s1, s2):
