@@ -26,16 +26,31 @@ THEMES = {
 }
 
 class GreaperApp(App):
-    CSS_PATH = "greaper_theme.css"  # This line makes greaper_theme.css the default theme
-
-    BINDINGS = [("q", "quit", "Quit"), ("ctrl+c", "quit", "Quit")]  # Add easy exit bindings
-
+    CSS_PATH = "greaper_theme.css"
+    BINDINGS = [("q", "quit", "Quit"), ("ctrl+c", "quit", "Quit")]
     search_results = reactive([])
 
-    def __init__(self, **kwargs):
+    def __init__(self, pattern=None, path=".", fuzzy=False, ignore_case=False, word=False, context=0, **kwargs):
         super().__init__(**kwargs)
-        self.theme_name = "Default"
-        self.theme = THEMES[self.theme_name]
+        self.pattern = pattern
+        self.path = path
+        self.fuzzy = fuzzy
+        self.ignore_case = ignore_case
+        self.word = word
+        self.context = context
+        self.theme_name = "Default"  # Set a default theme name
+        self._current_theme = THEMES[self.theme_name]  # Use a private attribute
+
+    @classmethod
+    def from_cli_args(cls, args):
+        return cls(
+            pattern=getattr(args, "pattern", None),
+            path=getattr(args, "path", "."),
+            fuzzy=getattr(args, "fuzzy", False),
+            ignore_case=getattr(args, "ignore_case", False),
+            word=getattr(args, "word", False),
+            context=getattr(args, "context", 0),
+        )
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -43,7 +58,7 @@ class GreaperApp(App):
             with Horizontal():
                 yield Input(placeholder="Enter search pattern...", id="search_input")
                 yield Button("Search", id="search_btn", variant="primary")
-                yield Select(list(THEMES.keys()), prompt="Theme", id="theme_select")
+                yield Select([(theme, theme) for theme in THEMES.keys()], prompt="Theme", id="theme_select")
                 yield Checkbox("Case Insensitive", id="case_checkbox")
                 yield Checkbox("Regex", id="regex_checkbox")
                 yield Checkbox("Fuzzy", id="fuzzy_checkbox")
@@ -64,7 +79,7 @@ class GreaperApp(App):
 
     async def on_select_changed(self, event: Select.Changed):
         self.theme_name = event.value
-        self.theme = THEMES[self.theme_name]
+        self._current_theme = THEMES[self.theme_name]
         self.update_theme()
 
     async def perform_search(self):
@@ -86,10 +101,10 @@ class GreaperApp(App):
             table.add_row(*map(str, row))
 
     def update_theme(self):
-        theme = self.theme
+        theme = self._current_theme
         self.styles.background = theme["background"]
-        self.styles.primary = theme["primary"]
-        self.styles.accent = theme["accent"]
+        # self.styles.primary = theme["primary"]  # Only if you use these in your CSS
+        # self.styles.accent = theme["accent"]    # Only if you use these in your CSS
         # You can expand this to set widget-specific styles
 
     async def action_quit(self) -> None:
