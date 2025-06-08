@@ -63,3 +63,23 @@ cpdef double similarity_ratio(str s1, str s2):
         return 1.0
     cdef int dist = levenshtein(s1, s2)
     return 1.0 - dist / max_len
+
+cpdef list fuzzy_search(str pattern, list lines, double threshold=0.7, int context=0, int max_results=1000):
+    """
+    Fuzzy search for pattern in a list of lines.
+    Returns a list of (line_number, line, context_before, context_after) for matches above threshold.
+    """
+    cdef int n_lines = len(lines)
+    cdef int results_found = 0
+    results = []
+    for i in range(n_lines):
+        line = lines[i]
+        score = similarity_ratio(pattern, line)
+        if score >= threshold:
+            before = [lines[j].strip() for j in range(max(0, i-context), i)] if context else []
+            after = [lines[j].strip() for j in range(i+1, min(n_lines, i+1+context))] if context else []
+            results.append((i+1, line.strip(), before, after, score))
+            results_found += 1
+            if results_found >= max_results:
+                break
+    return results

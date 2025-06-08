@@ -169,3 +169,14 @@ greaper/
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for release notes.
+
+## Editor & Tool Integrations
+
+- **VS Code**: Export search results in Problems panel format.
+- **Sublime Text**: Export in Find Results format.
+- **JetBrains IDEs**: Export in Find in Path format.
+- **Vim/Neovim**: Export in quickfix format.
+- **Emacs**: Export in compilation buffer format.
+- **JSON/CSV/Markdown**: For scripting, reporting, and data science.
+
+Use the CLI `export` command to generate output for your favorite tool!

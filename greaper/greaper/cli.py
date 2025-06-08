@@ -113,7 +113,8 @@ def search_command(args):
         ("ignore_case", args.ignore_case, "Case-insensitive search (y/n)", bool),
         ("word", args.word, "Match whole words only (y/n)", bool),
         ("context", args.context, "Show N lines of context", int),
-        ("syntax_aware", args.syntax_aware, "Only match in comments/strings (y/n)", bool),
+        ("syntax_aware", args.syntax_aware, "Only match in comments/strings/code (y/n)", bool),
+        ("syntax_mode", getattr(args, "syntax_mode", "all"), "Syntax mode (all/comment/string/code/mixed)", str),
         ("include", args.include, "Glob patterns to include (e.g. *.py *.md, space-separated)", list),
         ("exclude", args.exclude, "Glob patterns to exclude (e.g. *.log *.tmp, space-separated)", list),
         ("max_results", args.max_results, "Maximum number of results", int),
@@ -133,6 +134,7 @@ def search_command(args):
     print(f"  Whole word:   {'ON' if args.word else 'OFF'}")
     print(f"  Context:      {args.context}")
     print(f"  Syntax aware: {'ON' if args.syntax_aware else 'OFF'}")
+    print(f"  Syntax mode:  {args.syntax_mode}")
     print(f"  Include:      {' '.join(args.include)}")
     print(f"  Exclude:      {' '.join(args.exclude)}")
     print(f"  Max results:  {args.max_results}")
@@ -169,6 +171,7 @@ def search_command(args):
             exclude=args.exclude,
             max_results=args.max_results,
             syntax_aware=args.syntax_aware,
+            syntax_mode=args.syntax_mode,
         )
         print_results(results, color=not args.no_color, context=args.context)
     except Exception as e:
@@ -215,7 +218,17 @@ def export_command(args):
     """Handle the 'export' command interactively."""
     print("\n[Export Mode]")
     options = [
-        ("format", args.format, "Export format (json/csv/md)", str),
+        ("pattern", "", "Pattern to search for", str),
+        ("path", ".", "Path to search", str),
+        ("format", "json", "Export format (vscode/sublime/jetbrains/vim/emacs/json/csv/md)", str),
+        ("ignore_case", False, "Case-insensitive search (y/n)", bool),
+        ("fuzzy", False, "Use fuzzy search (y/n)", bool),
+        ("syntax_aware", False, "Syntax-aware search (y/n)", bool),
+        ("syntax_mode", "all", "Syntax mode (all/comment/string/code/mixed)", str),
+        ("include", ["*"], "Glob patterns to include", list),
+        ("exclude", [], "Glob patterns to exclude", list),
+        ("max_results", 1000, "Maximum number of results", int),
+        ("export_path", "", "Export file path (optional)", str),
     ]
     args_dict = interactive_prompt(options)
     for k, v in args_dict.items():
@@ -234,7 +247,45 @@ def export_command(args):
         return
 
     print(f"[CLI] Exporting results to {args.format} format")
-    # TODO: Implement export logic
+    from greaper.integraton import (
+        export_for_vscode, export_for_sublime, export_for_jetbrains,
+        export_for_vim_quickfix, export_for_emacs,
+        export_as_json, export_as_csv, export_as_markdown
+    )
+    export_map = {
+        "vscode": export_for_vscode,
+        "sublime": export_for_sublime,
+        "jetbrains": export_for_jetbrains,
+        "vim": export_for_vim_quickfix,
+        "emacs": export_for_emacs,
+        "json": export_as_json,
+        "csv": export_as_csv,
+        "md": export_as_markdown,
+        "markdown": export_as_markdown,
+    }
+    func = export_map.get(args.format.lower())
+    if not func:
+        print(f"[ERROR] Unknown export format: {args.format}")
+        return
+
+    output = func(
+        pattern=args.pattern,
+        path=args.path,
+        ignore_case=args.ignore_case,
+        fuzzy=args.fuzzy,
+        syntax_aware=args.syntax_aware,
+        syntax_mode=args.syntax_mode,
+        include=args.include,
+        exclude=args.exclude,
+        max_results=args.max_results,
+        export_path=args.export_path if hasattr(args, "export_path") and args.export_path else None,
+    )
+    if not args.export_path:
+        print("\n--- Export Output ---\n")
+        print(output)
+        print("\n--- End Export ---\n")
+    else:
+        print(f"Exported results to {args.export_path}")
 
 def print_available_options():
     print("\n[Greaper CLI Options]")
@@ -342,7 +393,17 @@ def main():
         replace_command(args)
     elif user_cmd == "export":
         options = [
-            ("format", "json", "Export format (json/csv/md)", str),
+            ("pattern", "", "Pattern to search for", str),
+            ("path", ".", "Path to search", str),
+            ("format", "json", "Export format (vscode/sublime/jetbrains/vim/emacs/json/csv/md)", str),
+            ("ignore_case", False, "Case-insensitive search (y/n)", bool),
+            ("fuzzy", False, "Use fuzzy search (y/n)", bool),
+            ("syntax_aware", False, "Syntax-aware search (y/n)", bool),
+            ("syntax_mode", "all", "Syntax mode (all/comment/string/code/mixed)", str),
+            ("include", ["*"], "Glob patterns to include", list),
+            ("exclude", [], "Glob patterns to exclude", list),
+            ("max_results", 1000, "Maximum number of results", int),
+            ("export_path", "", "Export file path (optional)", str),
         ]
         args_dict = interactive_prompt(options)
         args = argparse.Namespace(**args_dict)

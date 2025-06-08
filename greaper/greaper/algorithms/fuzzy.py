@@ -1,7 +1,7 @@
 try:
-    from ..cython_ext.fuzzy_cython import levenshtein, similarity_ratio
+    from cython_ext.fuzzy_cython import levenshtein, similarity_ratio, fuzzy_search
 except ImportError:
-    # Optional: fallback to pure Python if Cython extension is not built
+    # Fallback to pure Python implementations
     def levenshtein(s1, s2):
         if len(s1) < len(s2):
             return levenshtein(s2, s1)
@@ -24,3 +24,15 @@ except ImportError:
         distance = levenshtein(s1, s2)
         max_len = max(len(s1), len(s2))
         return 1.0 - distance / max_len if max_len else 1.0
+
+    def fuzzy_search(pattern, lines, threshold=0.7, context=0, max_results=1000):
+        results = []
+        for i, line in enumerate(lines):
+            score = similarity_ratio(pattern, line)
+            if score >= threshold:
+                before = [lines[j].strip() for j in range(max(0, i-context), i)] if context else []
+                after = [lines[j].strip() for j in range(i+1, min(len(lines), i+1+context))] if context else []
+                results.append((i+1, line.strip(), before, after, score))
+                if len(results) >= max_results:
+                    break
+        return results

@@ -144,6 +144,12 @@ class GreaperApp(App):
                 yield Input(placeholder="Include globs (e.g. *.py *.md)", id="include_input")
                 yield Input(placeholder="Exclude globs (e.g. *.log *.tmp)", id="exclude_input")
                 yield Input(placeholder="Max results (e.g. 1000)", id="maxresults_input")
+                yield Select(
+                    [("All", "all"), ("Comment", "comment"), ("String", "string"), ("Code", "code"), ("Mixed", "mixed")],
+                    prompt="Syntax Mode",
+                    id="syntaxmode_select",
+                    value="all"
+                )
             yield Static("Results:", id="results_label")
             yield DataTable(id="results_table")
         yield GreaperFooter()
@@ -174,14 +180,15 @@ class GreaperApp(App):
         await self.perform_search()
 
     async def on_select_changed(self, event: Select.Changed):
-        self.theme_name = event.value
-        self._current_theme = THEMES[self.theme_name]
-        self.update_theme()
-        self.query_one(GreaperHeader).styles.background = self._current_theme["background"]
-        self.query_one(GreaperHeader).styles.color = self._current_theme["primary"]
-        self.query_one(GreaperFooter).styles.background = self._current_theme["background"]
-        self.query_one(GreaperFooter).styles.color = self._current_theme["accent"]
-        self.query_one("#results_label", Static).styles.color = self._current_theme["accent"]
+        if event.select.id == "theme_select":
+            self.theme_name = event.value
+            self._current_theme = THEMES[self.theme_name]
+            self.update_theme()
+            self.query_one(GreaperHeader).styles.background = self._current_theme["background"]
+            self.query_one(GreaperHeader).styles.color = self._current_theme["primary"]
+            self.query_one(GreaperFooter).styles.background = self._current_theme["background"]
+            self.query_one(GreaperFooter).styles.color = self._current_theme["accent"]
+            self.query_one("#results_label", Static).styles.color = self._current_theme["accent"]
 
     async def perform_search(self):
         from greaper.core import search_files
@@ -210,6 +217,8 @@ class GreaperApp(App):
         except ValueError:
             max_results = 1000
 
+        syntax_mode = self.query_one("#syntaxmode_select", Select).value
+
         try:
             results = search_files(
                 pattern=pattern,
@@ -222,6 +231,7 @@ class GreaperApp(App):
                 exclude=exclude,
                 max_results=max_results,
                 syntax_aware=syntax_aware,
+                syntax_mode=syntax_mode,
                 regex=regex,  # Only if your backend supports it!
             )
         except Exception as e:

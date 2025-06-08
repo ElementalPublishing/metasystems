@@ -1,12 +1,13 @@
 import re
 
-def simple_search(pattern, lines, ignore_case=False, regex=False):
-    """Search lines for pattern, optionally using regex."""
+def regex_search(pattern, lines, ignore_case=False, regex=False, word=False):
     flags = re.IGNORECASE if ignore_case else 0
-    if not regex:
-        # Escape pattern for literal search
-        pattern = re.escape(pattern)
-    compiled = re.compile(pattern, flags)
+    if regex:
+        compiled = re.compile(pattern, flags)
+    elif word:
+        compiled = re.compile(rf"\b{re.escape(pattern)}\b", flags)
+    else:
+        compiled = re.compile(re.escape(pattern), flags)
     results = []
     for i, line in enumerate(lines):
         if compiled.search(line):
