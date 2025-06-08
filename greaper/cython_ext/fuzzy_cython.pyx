@@ -1,5 +1,8 @@
 # cython: language_level=3
 
+import numpy as np
+cimport numpy as np
+
 cdef inline int min3(int a, int b, int c):
     """Return the minimum of three integers."""
     if a < b:
@@ -30,23 +33,25 @@ cpdef int levenshtein(str s1, str s2):
     if s1 == s2:
         return 0
 
-    # Allocate two rows for dynamic programming
-    cdef int[:] prev_row = [i for i in range(len2 + 1)]
-    cdef int[:] curr_row = [0] * (len2 + 1)
+    # Allocate two rows for dynamic programming using NumPy arrays
+    cdef np.ndarray[np.int32_t, ndim=1] prev_row = np.arange(len2 + 1, dtype=np.int32)
+    cdef np.ndarray[np.int32_t, ndim=1] curr_row = np.zeros(len2 + 1, dtype=np.int32)
+    cdef np.int32_t[:] prev_row_mv = prev_row
+    cdef np.int32_t[:] curr_row_mv = curr_row
 
     for i in range(1, len1 + 1):
-        curr_row[0] = i
+        curr_row_mv[0] = i
         for j in range(1, len2 + 1):
             cost = 0 if s1[i - 1] == s2[j - 1] else 1
-            curr_row[j] = min3(
-                curr_row[j - 1] + 1,      # insertion
-                prev_row[j] + 1,          # deletion
-                prev_row[j - 1] + cost    # substitution
+            curr_row_mv[j] = min3(
+                curr_row_mv[j - 1] + 1,      # insertion
+                prev_row_mv[j] + 1,          # deletion
+                prev_row_mv[j - 1] + cost    # substitution
             )
         # Swap rows for next iteration
-        prev_row, curr_row = curr_row, prev_row
+        prev_row_mv, curr_row_mv = curr_row_mv, prev_row_mv
 
-    return prev_row[len2]
+    return prev_row_mv[len2]
 
 cpdef double similarity_ratio(str s1, str s2):
     """
