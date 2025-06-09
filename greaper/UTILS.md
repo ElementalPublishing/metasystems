@@ -88,3 +88,28 @@ You can use or modify this utility as a base for more advanced codebase analysis
 - Batch processing Python files
 
 ---
+
+# Utilities
+
+This folder contains user and system utilities that can be run from the TUI or CLI.
+
+## Available Utilities
+
+- **imports.py**  
+  Auto-resolves and fixes broken imports across the codebase.  
+  Can be run from the Utilities menu in the TUI or via CLI.
+
+- **bannerenforcer.py**  
+  Enforces ASCII banner style and placement in project files.  
+  Ensures all banners are consistent and meet project standards.
+
+- **gitdestroyer.py**  
+  Aggressively removes `.git` directories and related files from the project.  
+  Use with caution—this will permanently delete git history and configuration.
+
+## How to Add a Utility
+
+1. Place your utility script in this `utils/` folder.
+2. It will be automatically discovered and available in the TUI Utilities menu and CLI.
+
+---

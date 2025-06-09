@@ -1,5 +1,25 @@
 # Changelog
 
+## [v1.3.0] - 2025-06-09
+
+### Added
+- Robust JSON-based theme system: add new themes by dropping JSON files in `themes/`
+- Instant theme hot-swapping in TUI (`Ctrl+T`) with dynamic header updates
+- Minimal John Wick–style notification on startup: "Change mode: Ctrl+T"
+- BannerEnforcer utility for enforcing ASCII banner style and placement
+- GitDestroyer utility for aggressive `.git` cleanup and removal
+- Improved documentation for theme system and utilities
+
+### Changed
+- CSS now used only for layout/structure; all color logic handled in Python
+- Header now updates dynamically to show the current theme name
+
+### Fixed
+- Duplicate notifications on startup removed
+- Theme switching now updates header and all relevant widgets seamlessly
+
+---
+
 ## [v1.2.0] - 2025-06-08
 
 ### Added
