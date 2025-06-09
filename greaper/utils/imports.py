@@ -182,7 +182,8 @@ def fix_import_in_file(py_file, lineno, old_line, new_line):
             else:
                 print(f"    -> Could not auto-fix line {lineno} (line mismatch).")
 
-if __name__ == "__main__":
+def main():
+    # Move all code from "if __name__ == '__main__':" here
     print("=" * 70)
     print("PYTHON IMPORTS TEST UTILITY".center(70))
     print(f"Running from: {UTILITY_DIR}".center(70))
@@ -226,3 +227,6 @@ if __name__ == "__main__":
         print("-" * 70)
         print(f"Total: {len(broken_files)} Python file(s) with broken imports.")
     print("=" * 70)
+
+if __name__ == "__main__":
+    main()

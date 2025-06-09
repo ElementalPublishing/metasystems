@@ -7,23 +7,32 @@ def run_and_log():
     script_path = Path(__file__).parent / "gui_textual.py"
     out_path = Path(__file__).parent / "gui_textual_output.json"
 
-    proc = subprocess.run(
-        [sys.executable, str(script_path)],
-        capture_output=True,
-        text=True
-    )
-
+    try:
+        proc = subprocess.run(
+            [sys.executable, str(script_path)],
+            capture_output=True,
+            text=True,
+            timeout=3  # seconds; adjust as needed
+        )
+        returncode = proc.returncode
+        stdout = proc.stdout
+        stderr = proc.stderr
+    except subprocess.TimeoutExpired as e:
+        returncode = None
+        stdout = e.stdout or ""
+        stderr = e.stderr or ""
+    
     result = {
-        "returncode": proc.returncode,
-        "stdout": proc.stdout,
-        "stderr": proc.stderr
+        "returncode": returncode,
+        "stdout": stdout,
+        "stderr": stderr
     }
 
     # Optionally, parse tracebacks from stderr and add as a list
     tracebacks = []
     tb_lines = []
     in_tb = False
-    for line in proc.stderr.splitlines():
+    for line in stderr.splitlines():
         if line.startswith("Traceback (most recent call last):"):
             in_tb = True
             tb_lines = [line]

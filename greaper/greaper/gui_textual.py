@@ -5,6 +5,8 @@ from textual.reactive import reactive
 from textual import events
 from textual.screen import ModalScreen
 
+from greaper.utils import list_utilities, run_utility, get_utility_doc
+
 THEMES = {
     "John Wick": {
         "primary": "#00bfff",      # neon blue
@@ -75,6 +77,27 @@ class GreaperFooter(Static):
     def compose(self):
         yield Static("Type 'exit' to quit | Theme: John Wick", id="footer_text")
 
+class UtilitiesModal(ModalScreen):
+    def __init__(self, utils_list):
+        super().__init__()
+        self.utils_list = utils_list
+
+    def compose(self):
+        yield Static("Select a utility to run:", id="utils_label")
+        for util in self.utils_list:
+            doc = get_utility_doc(util)
+            label = f"{util} - {doc.strip().splitlines()[0] if doc else ''}"
+            yield Button(label, id=f"util_{util}")
+        yield Button("Cancel", id="util_cancel")
+
+    async def on_button_pressed(self, event):
+        if event.button.id == "util_cancel":
+            await self.app.pop_screen()
+            return
+        util_name = event.button.id.replace("util_", "")
+        await self.app.pop_screen()
+        self.app.run_utility_from_tui(util_name)
+
 class GreaperApp(App):
     CSS_PATH = "greaper_theme.css"
     BINDINGS = [("q", "quit", "Quit"), ("ctrl+c", "quit", "Quit")]
@@ -129,6 +152,7 @@ class GreaperApp(App):
             with Horizontal():
                 yield Input(placeholder="Enter search pattern...", id="search_input")
                 yield Button("Search", id="search_btn", variant="primary")
+                yield Button("Utilities", id="utilities_btn", variant="default")
                 yield Select(
                     [(theme, theme) for theme in THEMES.keys()],
                     prompt="Theme",
@@ -161,6 +185,9 @@ class GreaperApp(App):
         table.add_columns("File", "Line", "Match", "Context Before", "Context After")
         table.zebra_stripes = True
 
+        # Focus the search input so the user can type immediately
+        self.query_one("#search_input", Input).focus()
+
         # Show which fuzzy backend is being used
         try:
             from greaper.algorithms import fuzzy
@@ -170,11 +197,24 @@ class GreaperApp(App):
             else:
                 self.notify("[INFO] Using pure Python fuzzy backend.", timeout=3)
         except Exception as e:
-            await self.push_screen(ErrorModal(f"[ERROR] Could not determine fuzzy backend: {e}"))
+            self.push_screen(ErrorModal(f"[ERROR] Could not determine fuzzy backend: {e}"))
 
     async def on_button_pressed(self, event: Button.Pressed):
         if event.button.id == "search_btn":
             await self.perform_search()
+        elif event.button.id == "utilities_btn":
+            utils_list = list_utilities()
+            await self.push_screen(UtilitiesModal(utils_list))
+
+    def run_utility_from_tui(self, util_name):
+        try:
+            output = run_utility(util_name)
+            self.notify(f"Utility '{util_name}' ran successfully.", timeout=3)
+            # Show output in a modal if any
+            if output:
+                self.push_screen(ErrorModal(str(output)))
+        except Exception as e:
+            self.push_screen(ErrorModal(f"Utility error: {e}"))
 
     async def on_input_submitted(self, event: Input.Submitted):
         await self.perform_search()
@@ -232,7 +272,7 @@ class GreaperApp(App):
                 max_results=max_results,
                 syntax_aware=syntax_aware,
                 syntax_mode=syntax_mode,
-                regex=regex,  # Only if your backend supports it!
+                regex=regex,
             )
         except Exception as e:
             await self.push_screen(ErrorModal(f"Search error: {e}"))

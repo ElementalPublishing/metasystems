@@ -1,5 +1,5 @@
 try:
-    from cython_ext.fuzzy_cython import levenshtein, similarity_ratio, fuzzy_search
+    from greaper.cython_ext.fuzzy_cython import levenshtein, similarity_ratio, fuzzy_search
 except ImportError:
     # Fallback to pure Python implementations
     def levenshtein(s1, s2):

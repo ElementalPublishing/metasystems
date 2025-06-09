@@ -289,22 +289,28 @@ def export_command(args):
 
 def print_available_options():
     print("\n[Greaper CLI Options]")
-    print("search   - Search for a pattern in files")
-    print("replace  - Replace a pattern in files (future)")
-    print("export   - Export search results (future)")
+    print("search   - Search for a pattern in files (supports archives, syntax-aware, fuzzy, etc.)")
+    print("replace  - Replace a pattern in files (preview, fuzzy, future: archive-aware)")
+    print("export   - Export search results for editors/tools (VS Code, Sublime, JetBrains, Vim, Emacs, JSON, CSV, Markdown)")
     print("\n[Search Options]")
     print("  pattern         Pattern to search for (regex or fuzzy)")
-    print("  path            Path to search (default: current directory)")
+    print("  path            Path to search (default: current directory, supports archives: .zip, .tar, .7z, .rar, etc.)")
     print("  -f, --fuzzy     Use fuzzy search")
     print("  -i, --ignore-case   Case-insensitive search")
     print("  -w, --word      Match whole words only")
     print("  -C, --context   Show N lines of context")
-    print("  --syntax-aware  Only match in comments/strings (syntax aware)")
+    print("  --syntax-aware  Only match in comments/strings/code (syntax aware)")
+    print("  --syntax-mode   Syntax mode: all/comment/string/code/mixed")
     print("  --include       Glob patterns to include (e.g. *.py *.md)")
     print("  --exclude       Glob patterns to exclude (e.g. *.log *.tmp)")
     print("  --max-results   Maximum number of results")
     print("  --no-color      Disable color output")
     print("  --tui           Launch the Textual TUI interface")
+    print("\n[Export Options]")
+    print("  format          Export format: vscode, sublime, jetbrains, vim, emacs, json, csv, md/markdown")
+    print("  export_path     Export file path (optional, prints to stdout if omitted)")
+    print("\n[Archive Support]")
+    print("  Greaper will search inside .zip, .tar, .gz, .bz2, .xz, .lzma, .7z, .rar, .whl, .egg, .jar, .nupkg, and nested archives automatically!")
     print("\nType the command you want to use (e.g., 'search') or press Enter to exit.")
 
 def interactive_prompt(options):
@@ -352,6 +358,26 @@ def interactive_prompt(options):
         args[name] = val
         idx += 1
     return args
+
+def importfix_command(args=None):
+    """Run the import fixer utility from utils."""
+    import sys, os
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+    from utils import imports
+    imports.main()
+
+def utilities_command(args=None):
+    from greaper.utils import list_utilities, run_utility, get_utility_doc
+
+    print("\nAvailable Utilities:")
+    for util in list_utilities():
+        print(f"  {util} - {get_utility_doc(util).strip().splitlines()[0] if get_utility_doc(util) else ''}")
+    util = input("Enter utility name to run (or blank to cancel): ").strip()
+    if util in list_utilities():
+        print(f"\nRunning utility: {util}\n{'-'*40}")
+        run_utility(util)
+    else:
+        print("Cancelled or not found.")
 
 def main():
     print_available_options()
@@ -408,6 +434,10 @@ def main():
         args_dict = interactive_prompt(options)
         args = argparse.Namespace(**args_dict)
         export_command(args)
+    elif user_cmd == "importfix":
+        importfix_command()
+    elif user_cmd == "utilities":
+        utilities_command()
     else:
         print("Unknown command. Exiting.")
 

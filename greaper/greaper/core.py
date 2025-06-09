@@ -2,6 +2,7 @@ import os
 import sys
 from pathlib import Path
 from greaper.filewalker import get_files_to_search
+from greaper.archive import extract_file_from_archive
 
 # --- John Wick Import Resolver ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -50,11 +51,22 @@ def search_files(
         pat_flags |= 2  # re.IGNORECASE
 
     for file in files_to_search:
-        try:
-            with open(file, encoding="utf-8", errors="ignore") as f:
-                lines = f.readlines()
-        except Exception:
-            continue
+        # --- Handle archive members ---
+        if isinstance(file, tuple):
+            archive_path, inner_path = file
+            try:
+                content = extract_file_from_archive(archive_path, inner_path)
+                lines = content.splitlines(keepends=True)
+                file_label = f"{archive_path}::{inner_path}"
+            except Exception:
+                continue
+        else:
+            try:
+                with open(file, encoding="utf-8", errors="ignore") as f:
+                    lines = f.readlines()
+                file_label = str(file)
+            except Exception:
+                continue
 
         # Use Cython-accelerated search if available
         if CYTHON_SEARCH:
@@ -62,7 +74,7 @@ def search_files(
                 lines, pattern, fuzzy, pat_flags, word, context, max_results, regex,
                 syntax_aware, syntax_mode
             )
-            results.extend([(str(file), *r) for r in file_results])
+            results.extend([(file_label, *r) for r in file_results])
             if len(results) >= max_results:
                 return results[:max_results]
             continue
@@ -76,7 +88,7 @@ def search_files(
                     before = [lines[j].strip() for j in range(max(0, i-context), i)] if context else []
                     after = [lines[j].strip() for j in range(i+1, min(len(lines), i+1+context))] if context else []
                     results.append(
-                        (str(file), i+1, line.strip(), before, after)
+                        (file_label, i+1, line.strip(), before, after)
                     )
                     if len(results) >= max_results:
                         return results
@@ -90,7 +102,7 @@ def search_files(
                 before = [lines[j].strip() for j in range(max(0, i-context), i)] if context else []
                 after = [lines[j].strip() for j in range(i+1, min(len(lines), i+1+context))] if context else []
                 results.append(
-                    (str(file), i+1, line.strip(), before, after)
+                    (file_label, i+1, line.strip(), before, after)
                 )
                 if len(results) >= max_results:
                     return results

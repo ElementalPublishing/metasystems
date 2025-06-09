@@ -1,5 +1,34 @@
 # Changelog
 
+## [v1.2.0] - 2025-06-08
+
+### Added
+- Cython-accelerated fuzzy search backend with automatic Python fallback
+- Utilities system: dynamic discovery and execution of utilities from both CLI and TUI
+- TUI "Utilities" menu for running any utility in the `utils` folder
+- Import fixer utility for auto-resolving and fixing broken imports across the codebase
+- Advanced tokenization with robust regex for Python/C/JavaScript strings and comments
+- Improved error modals and notifications in TUI
+- Theme switching and persistent theme support in TUI
+- Integration with CLI for launching TUI (`--tui` flag)
+- Unit test for TUI startup and output capture
+
+### Changed
+- Refactored TUI (`gui_textual.py`) for modularity and easier extension
+- Updated tokenization regex to fix syntax errors and support triple-quoted strings
+- Improved backend detection and notification for fuzzy search (Cython vs Python)
+- Enhanced CLI and TUI to share backend logic and options
+- Improved import management and absolute import usage throughout the codebase
+
+### Fixed
+- Syntax error in tokenization regex for triple-double-quoted strings
+- Import errors when running as a module or script
+- Removed improper use of `await` with synchronous `.focus()` method in TUI
+- Fixed theme selection and style updates in TUI
+- Fixed CLI and TUI integration with new backend and utility features
+
+---
+
 ## [v1.1.0] - 2025-06-08
 
 ### Added

@@ -2,109 +2,122 @@
 
 Greaper is a next-generation search tool for developers, data scientists, and power users.  
 It combines the speed and flexibility of classic grep with modern features for code, data, and package search.  
-Now with a modern TUI, robust error handling, and extensible architecture.
+Now with a modern TUI, robust error handling, Cython-accelerated algorithms, and an extensible architecture.
 
 ---
 
 ## 🚀 Goals & Milestones
 
 ### 1. Core CLI and Search Engine
-- [x] Design command-line interface (CLI) and help system
-- [x] Implement basic regex search
-- [x] Add fuzzy search capability (using optimized algorithms)
-- [x] Support case-insensitive and whole-word options
+- [x] Command-line interface (CLI) and help system
+- [x] Regex and fuzzy search (Cython-accelerated if available)
+- [x] Case-insensitive and whole-word options
+- [x] Syntax-aware search (comments, strings, code)
+- [x] Persistent and colorized output (TUI, CLI)
+- [x] Python API for scripting
 
 ### 2. File & Directory Traversal
-- [x] Implement recursive file/directory traversal
-- [x] Add include/exclude pattern support
-- [ ] Integrate `.gitignore` and custom ignore files
+- [x] Recursive file/directory traversal
+- [x] Include/exclude pattern support
+- [ ] `.gitignore` and custom ignore files
 
 ### 3. Output and Usability
-- [x] Show N lines before/after matches (context)
-- [ ] Highlight matches in color
-- [ ] Add syntax highlighting for code files
-- [ ] Output results as plain text, JSON, CSV, or Markdown
+- [x] Context lines before/after matches
+- [x] Highlight matches in color (TUI)
+- [x] Syntax highlighting for code files (TUI)
+- [x] Output as plain text, JSON, CSV, or Markdown
+- [x] Export results for editors and data science
 
 ### 4. Archive and Package Support
-- [ ] Detect and open archives (.zip, .tar, etc.)
-- [ ] Search inside Python packages (.whl, .egg)
+- [x] Detect and open archives (.zip, .tar, etc.)
+- [x] Search inside Python packages (.whl, .egg)
 - [ ] Search inside Java/.NET packages (.jar, .nupkg)
 - [ ] Optionally search inside installed Python packages and `node_modules`
 
 ### 5. Interactive and Batch Replace Modes
-- [ ] Implement interactive review of matches
-- [ ] Allow opening/editing files from results
-- [ ] Add batch search-and-replace functionality
-- [ ] Support piping input/output
+- [x] Interactive review of matches (TUI)
+- [x] Open/edit files from results (TUI)
+- [x] Batch search-and-replace functionality
+- [x] Support piping input/output
 
 ### 6. Advanced Search Features
-- [x] Regex search
-- [x] Fuzzy search
-- [x] Case-insensitive and whole-word options
-- [ ] Add syntax-aware search (e.g., only in comments/strings)
-- [ ] Implement parallel/multithreaded search for large projects
-- [ ] Presets and reusable search patterns
+- [x] Regex, fuzzy, case-insensitive, and whole-word options
+- [x] Syntax-aware search (comments, strings, code)
+- [x] Parallel/multithreaded search for large projects
+- [x] Presets and reusable search patterns
 
 ### 7. Integration and API
-- [ ] Provide a Python API for scripting
-- [ ] Add hooks/integration for popular editors/IDEs
+- [x] Python API for scripting
+- [x] Hooks/integration for popular editors/IDEs (VS Code, Sublime, JetBrains, Vim, Emacs)
+- [x] Export in editor-native formats
 
 ### 8. Robustness & Professionalism
-- [ ] Write user and developer documentation
-- [ ] Create unit and integration tests for all modules
-- [x] Ensure cross-platform compatibility (Windows, Linux, macOS)
-- [ ] Provide easy installation instructions
+- [x] User and developer documentation
+- [x] Unit and integration tests for all modules
+- [x] Cross-platform compatibility (Windows, Linux, macOS)
+- [x] Easy installation instructions
+- [x] Robust error handling and user-friendly dialogs
+
+### 9. Utilities and Extensibility
+- [x] Dynamic utilities system: run any utility in the `utils` folder from CLI or TUI
+- [x] Import fixer utility for auto-resolving and fixing broken imports
+- [x] John Wick import resolver for reliable imports
 
 ---
 
 ## ✨ Current Features
 
-- **Modern TUI** with theme support and persistent error dialogs
+- **Modern TUI** with theme support, persistent error dialogs, and a dynamic Utilities menu
 - **Recursive search** with include/exclude globs
-- **Regex, fuzzy, and whole-word search** options
+- **Regex, fuzzy, and whole-word search** (Cython-accelerated if available)
 - **Context lines** before/after matches
+- **Syntax-aware search** for codebases (comments, strings, code)
+- **Archive/package search** (.zip, .tar, .whl, .egg, etc.)
 - **Robust error handling** and user-friendly dialogs
-- **Cross-platform** support (Windows, Linux, macOS)
+- **Cross-platform** (Windows, Linux, macOS)
+- **Dynamic utilities system**: run any utility in the `utils` folder from CLI or TUI
+- **Import fixer utility** for auto-resolving and fixing broken imports
 - **John Wick import resolver** for reliable imports
+- **Export results** as plain text, JSON, CSV, Markdown, or editor-native formats
+- **Integration with VS Code, Sublime, JetBrains, Vim, Emacs, and more**
 
 ---
 
 ## 🛣️ Roadmap & Next Steps
 
-- [ ] Match highlighting in TUI
-- [ ] Syntax highlighting for code files
-- [ ] Export results (plain text, JSON, CSV, Markdown)
 - [ ] `.gitignore` and custom ignore file support
-- [ ] Interactive review and batch replace
-- [ ] Archive/package search
-- [ ] Python API and editor integration
-- [ ] Documentation, tests, and easy install
+- [ ] More archive/package formats (e.g., .jar, .nupkg)
+- [ ] Interactive review and batch replace in CLI
+- [ ] More advanced syntax highlighting and code intelligence
+- [ ] More editor integrations and plugins
+- [ ] Documentation, tests, and easy install improvements
 
 ---
 
 ## ⚡️ Performance & Algorithms
 
-- **Core performance-critical functions** (such as the main search loop, fuzzy matching, and batch replace) will be implemented or accelerated using **Cython** to generate `.c` files for maximum speed.
-- We use or build optimized algorithms for:
-  - Fuzzy search (e.g., Levenshtein distance, string similarity)
+- **Cython-accelerated core functions** (search loop, fuzzy matching, batch replace) for maximum speed
+- Optimized algorithms for:
+  - Fuzzy search (Levenshtein, string similarity)
   - Pattern matching and scoring
   - Tokenization for syntax-aware search
-- Where possible, we leverage existing high-performance libraries (like `rapidfuzz`) and only implement our own algorithms when necessary.
-- All performance-critical code is organized in an `algorithms/` or `utils/` module, not a traditional math module, since the focus is on string processing and search algorithms.
+- Uses high-performance libraries (like `rapidfuzz`) where possible
+- All performance-critical code is in `algorithms/` or `cython_ext/`
 
 ---
 
 ## Why Use Greaper?
 
 - Fuzzy and regex search in one tool
-- Colorized, context-rich output (coming soon)
+- Colorized, context-rich output
 - Search inside archives and package files (.zip, .tar, .whl, .egg, .jar, .nupkg, etc.)
 - Optionally search inside installed Python packages and node_modules
 - Ignore patterns and .gitignore support (coming soon)
-- Interactive and batch replace modes (planned)
-- Output as JSON, CSV, or Markdown (planned)
-- Syntax-aware search for codebases (planned)
+- Interactive and batch replace modes
+- Output as JSON, CSV, Markdown, or editor-native formats
+- Syntax-aware search for codebases
 - Modern, interactive terminal UI powered by [Textual](https://github.com/Textualize/textual)
+- Dynamic utilities system for extensibility
 - And more!
 
 ---
@@ -135,7 +148,11 @@ greaper/
 │   ├── archive.py                  # Archive/package support (.zip, .tar, .whl, etc.)
 │   ├── integration.py              # Integration and batch replace logic
 │   ├── syntax.py                   # Syntax-aware search/tokenization
-│   ├── utils.py                    # General helpers (timing, logging, etc.)
+│   ├── utils.py                    # Utility manager (dynamic discovery/execution)
+│   ├── utils/                      # Folder for user and system utilities
+│   │   ├── __init__.py
+│   │   ├── imports.py              # Import fixer utility
+│   │   └── ...                     # Other utilities
 │   └── algorithms/                 # Algorithms for fuzzy, scoring, etc.
 │       ├── __init__.py
 │       ├── fuzzy.py                # Fuzzy matching (Levenshtein, etc.)

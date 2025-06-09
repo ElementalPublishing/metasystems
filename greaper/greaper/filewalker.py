@@ -1,4 +1,5 @@
 from pathlib import Path
+from greaper.archive import is_archive, list_archive_files
 
 def is_text_file(filepath, blocksize=2048):
     """Robust check to skip binary files using heuristics and file extension."""
@@ -24,7 +25,8 @@ def get_files_to_search(
     exclude=None,
 ):
     """
-    Returns a list of text files to search, applying include/exclude globs.
+    Returns a list of text files and archive members to search, applying include/exclude globs.
+    Archive members are returned as (archive_path, inner_path) tuples.
     """
     include = include or ["*"]
     exclude = exclude or []
@@ -32,9 +34,16 @@ def get_files_to_search(
     files_to_search = set()
     for inc in include:
         files_to_search.update(root.rglob(inc))
-    # Remove excluded files and non-text files
-    files_to_search = [
-        f for f in files_to_search
-        if all(not f.match(ex) for ex in exclude) and f.is_file() and is_text_file(f)
-    ]
-    return files_to_search
+
+    result = []
+    for f in files_to_search:
+        if any(f.match(ex) for ex in exclude) or not f.is_file():
+            continue
+        if is_archive(f):
+            # Add each file inside the archive as a tuple
+            for inner in list_archive_files(str(f)):
+                # Optionally, filter archive members by extension or name here
+                result.append((str(f), inner))
+        elif is_text_file(f):
+            result.append(str(f))
+    return result

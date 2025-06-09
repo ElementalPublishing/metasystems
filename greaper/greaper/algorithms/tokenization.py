@@ -17,7 +17,7 @@ TOKEN_REGEX = re.compile(
         (?:'[^'\\]*(?:\\.[^'\\]*)*') |           # single-quoted string
         (?:"[^"\\]*(?:\\.[^"\\]*)*") |           # double-quoted string
         (?:'''[\s\S]*?''') |                     # triple-single-quoted string (Python)
-        (?:"""[\s\S]*?""")                       # triple-double-quoted string (Python)
+        (?:\"\"\"[\s\S]*?\"\"\")                 # triple-double-quoted string (Python)
     )
     | (?P<BLOCK_COMMENT>
         /\*[\s\S]*?\*/                           # C/JavaScript block comment
