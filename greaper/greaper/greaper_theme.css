@@ -1,85 +1,75 @@
 /* Greaper "John Wick" Vim-inspired Dark Theme */
 
+/* Layout and widget styles only! */
+
 Screen {
-    background: #1a1b26;
-    color: #c0caf5;
+    /* No color here, only structure if needed */
 }
 
-Header, Footer {
-    background: #16161e;
-    color: #7aa2f7;
+#header {
+    height: 3;
     text-style: bold;
-    border: tall #7aa2f7;
+    content-align: center middle;
+    border-bottom: solid;
+}
+
+#footer {
+    height: 2;
+    content-align: center middle;
+    border-top: solid;
+}
+
+#main-container {
+    layout: vertical;
+    padding: 1 2;
+}
+
+#search-bar {
+    layout: horizontal;
+    padding: 0 0 1 0;
+}
+
+#search-bar > * {
+    margin-right: 1;
 }
 
 Input, Select, Checkbox {
-    background: #24283b;
-    color: #c0caf5;
     border: round #7aa2f7;
     text-style: bold;
 }
 
 Button {
-    background: #7aa2f7;
-    color: #1a1b26;
     border: round #bb9af7;
     text-style: bold;
 }
 
 Button.-primary {
-    background: #bb9af7;
-    color: #1a1b26;
     border: round #7aa2f7;
     text-style: bold;
 }
 
-Static#results_label {
-    color: #e0af68;
+#results_label {
     text-style: bold;
     padding: 1 0 0 1;
 }
 
 DataTable {
-    background: #1a1b26;
-    color: #c0caf5;
     border: round #7aa2f7;
     text-style: bold;
 }
 
-Static#main {
-    color: #7aa2f7;
-    background: #16161e;
-    text-style: bold;
-    padding: 2 2 2 2;
-    border: round #bb9af7;
+#results_table {
+    height: 1fr;
+    min-height: 10;
+    max-height: 20;
+    overflow: auto;
 }
 
-GreaperHeader {
-    height: 3;
-    background: #16161e;
-    color: #00bfff;
-    text-style: bold;
+#banner_art {
     content-align: center middle;
-    border-bottom: solid #ff0080;
+    padding: 1 0;
+    text-style: bold;
 }
 
-GreaperFooter {
-    height: 2;
-    background: #16161e;
-    color: #ff0080;
-    content-align: center middle;
-    border-top: solid #00bfff;
-}
-
-Static#header_title {
-    color: #00bfff;
-    text-style: bold;
-    content-align: center middle;
-}
-
-Static#footer_text {
-    color: #ff0080;
-    text-style: bold;
-    content-align: center middle;
-}
+/* Add more layout/structure rules as needed */
 

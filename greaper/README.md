@@ -67,7 +67,12 @@ Now with a modern TUI, robust error handling, Cython-accelerated algorithms, and
 
 ## ✨ Current Features
 
-- **Modern TUI** with theme support, persistent error dialogs, and a dynamic Utilities menu
+- **Modern TUI** with:
+  - **Instant theme hot-swapping** (`Ctrl+T`) and dynamic theme selection menu
+  - **Theme system:** Add new themes by dropping JSON files in `greaper/themes/`
+  - **Dynamic header** that updates to show the current theme (e.g., 🐶 Greaper — John Wick Mode)
+  - **Minimal, professional notifications** (e.g., “Change mode: Ctrl+T” on startup)
+  - **Persistent error dialogs and dynamic Utilities menu**
 - **Recursive search** with include/exclude globs
 - **Regex, fuzzy, and whole-word search** (Cython-accelerated if available)
 - **Context lines** before/after matches
@@ -149,10 +154,16 @@ greaper/
 │   ├── integration.py              # Integration and batch replace logic
 │   ├── syntax.py                   # Syntax-aware search/tokenization
 │   ├── utils.py                    # Utility manager (dynamic discovery/execution)
+│   ├── themes.py                   # Loads all JSON themes
+│   ├── themes/                     # Folder for theme JSON files
+│   │   ├── john_wick.json
+│   │   ├── continental.json
+│   │   └── ... (add more themes)
 │   ├── utils/                      # Folder for user and system utilities
 │   │   ├── __init__.py
-│   │   ├── imports.py              # Import fixer utility
-│   │   └── ...                     # Other utilities
+│   │   └── ... (utility scripts)
+│   ├── scripts/                    # Folder for scripts (automation, setup, etc.)
+│   │   └── ... (your scripts)
 │   └── algorithms/                 # Algorithms for fuzzy, scoring, etc.
 │       ├── __init__.py
 │       ├── fuzzy.py                # Fuzzy matching (Levenshtein, etc.)
@@ -174,7 +185,7 @@ greaper/
 │   ├── test_syntax.py
 │   └── test_algorithms.py
 │
-├── greaper_theme.css               # Default Textual CSS theme
+├── greaper_theme.css               # Default Textual CSS theme (layout only)
 ├── README.md
 ├── LICENSE
 ├── setup.py                        # For pip install
@@ -197,3 +208,22 @@ See [CHANGELOG.md](CHANGELOG.md) for release notes.
 - **JSON/CSV/Markdown**: For scripting, reporting, and data science.
 
 Use the CLI `export` command to generate output for your favorite tool!
+
+---
+
+## 🎨 Theme System
+
+- **Themes are defined as JSON files** in `greaper/themes/` (e.g., `john_wick.json`, `continental.json`).
+- **No code changes needed** to add or remove themes—just add/remove JSON files.
+- **Switch themes instantly** in the TUI with `Ctrl+T` or from the theme dropdown.
+- **Header updates dynamically** to show the current theme (e.g., 🐶 Greaper — John Wick Mode).
+- **All color logic is handled in Python** for maximum flexibility and performance.
+- **CSS is used only for layout and structure**—no color variables or theme logic in CSS.
+- **Minimal, John Wick–style notification** on startup: “Change mode: Ctrl+T”.
+
+**To add a new theme:**  
+1. Copy any existing JSON file in `greaper/themes/`.
+2. Change the color values.
+3. Restart the TUI—your new theme will appear in the menu!
+
+---

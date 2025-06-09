@@ -174,6 +174,16 @@ def search_command(args):
             syntax_mode=args.syntax_mode,
         )
         print_results(results, color=not args.no_color, context=args.context)
+
+        # Prompt for next action after showing results
+        while True:
+            next_action = input("\nPress Enter to return to the main menu, or type 'exit' to quit: ").strip().lower()
+            if next_action == "exit":
+                print("Exiting Greaper.")
+                exit(0)
+            if next_action == "":
+                return  # Return to main menu
+            print("Invalid input. Please press Enter or type 'exit'.")
     except Exception as e:
         print(f"[ERROR] Search failed: {e}")
 

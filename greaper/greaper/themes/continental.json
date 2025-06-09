@@ -1,0 +1,18 @@
+{
+  "--background": "#23272e",
+  "--foreground": "#e0e0e0",
+  "--header-bg": "#2c2f36",
+  "--header-fg": "#ffd700",
+  "--footer-bg": "#2c2f36",
+  "--footer-fg": "#00bfff",
+  "--border-bottom": "#ffd700",
+  "--border-top": "#00bfff",
+  "--input-bg": "#23272e",
+  "--input-fg": "#e0e0e0",
+  "--button-bg": "#ffd700",
+  "--button-fg": "#23272e",
+  "--button-primary-bg": "#00bfff",
+  "--button-primary-fg": "#23272e",
+  "--results-label": "#00bfff",
+  "--banner-art": "#ffd700"
+}

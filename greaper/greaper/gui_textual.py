@@ -1,81 +1,29 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Header, Footer, Input, Button, Static, DataTable, Select, Checkbox
+from textual.widgets import Input, Button, Static, DataTable, Select, Checkbox
 from textual.containers import Container, Horizontal
 from textual.reactive import reactive
 from textual import events
 from textual.screen import ModalScreen
 
 from greaper.utils import list_utilities, run_utility, get_utility_doc
-
-THEMES = {
-    "John Wick": {
-        "primary": "#00bfff",      # neon blue
-        "accent": "#ff0080",       # neon magenta
-        "background": "#181a20",   # deep dark
-        "highlight": "#ffd700",    # gold
-        "table_header": "#00bfff",
-        "table_row": "#e0e0e0",
-        "table_alt_row": "#23272e",
-        "table_match": "#ffd700",
-    },
-    "Default": {
-        "primary": "blue",
-        "accent": "magenta",
-        "background": "black",
-        "highlight": "yellow",
-        "table_header": "blue",
-        "table_row": "white",
-        "table_alt_row": "grey23",
-        "table_match": "yellow",
-    },
-    "Solarized": {
-        "primary": "#268bd2",
-        "accent": "#b58900",
-        "background": "#002b36",
-        "highlight": "#859900",
-        "table_header": "#268bd2",
-        "table_row": "#eee8d5",
-        "table_alt_row": "#073642",
-        "table_match": "#b58900",
-    },
-    "Monokai": {
-        "primary": "#f92672",
-        "accent": "#a6e22e",
-        "background": "#272822",
-        "highlight": "#fd971f",
-        "table_header": "#f92672",
-        "table_row": "#f8f8f2",
-        "table_alt_row": "#49483e",
-        "table_match": "#fd971f",
-    },
-}
+from greaper.themes import THEMES
+import os
 
 class GreaperHeader(Static):
-    DEFAULT_CSS = """
-    GreaperHeader {
-        height: 3;
-        background: #16161e;
-        color: #00bfff;
-        text-style: bold;
-        content-align: center middle;
-        border-bottom: solid #ff0080;
-    }
-    """
-    def compose(self):
-        yield Static("🐶 Greaper — John Wick Mode", id="header_title")
+    def __init__(self, theme_name, **kwargs):
+        super().__init__("", **kwargs)
+        self.theme_name = theme_name
+
+    def update_header(self, theme_name):
+        self.theme_name = theme_name
+        self.update(f"🐶 Greaper — {self.theme_name} Mode")
+
+    def on_mount(self):
+        self.update_header(self.theme_name)
 
 class GreaperFooter(Static):
-    DEFAULT_CSS = """
-    GreaperFooter {
-        height: 2;
-        background: #16161e;
-        color: #ff0080;
-        content-align: center middle;
-        border-top: solid #00bfff;
-    }
-    """
     def compose(self):
-        yield Static("Type 'exit' to quit | Theme: John Wick", id="footer_text")
+        yield Static("", id="footer_text")  # Empty footer or add your own message
 
 class UtilitiesModal(ModalScreen):
     def __init__(self, utils_list):
@@ -100,35 +48,18 @@ class UtilitiesModal(ModalScreen):
 
 class GreaperApp(App):
     CSS_PATH = "greaper_theme.css"
-    BINDINGS = [("q", "quit", "Quit"), ("ctrl+c", "quit", "Quit")]
+    BINDINGS = [
+        ("q", "quit", "Quit"),
+        ("ctrl+c", "quit", "Quit"),
+        ("ctrl+t", "swap_theme", "Swap Theme"),
+    ]
     search_results = reactive([])
 
-    def __init__(
-        self,
-        pattern=None,
-        path=".",
-        fuzzy=False,
-        ignore_case=False,
-        word=False,
-        context=0,
-        syntax_aware=False,
-        include=None,
-        exclude=None,
-        max_results=1000,
-        **kwargs
-    ):
-        super().__init__(**kwargs)
-        self.pattern = pattern
-        self.path = path
-        self.fuzzy = fuzzy
-        self.ignore_case = ignore_case
-        self.word = word
-        self.context = context
-        self.syntax_aware = syntax_aware
-        self.include = include if include is not None else ["*"]
-        self.exclude = exclude if exclude is not None else []
-        self.max_results = max_results
-        self.theme_name = "John Wick"
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.theme_names = list(THEMES.keys())
+        self.theme_index = 0
+        self.theme_name = self.theme_names[self.theme_index]
         self._current_theme = THEMES[self.theme_name]
 
     @classmethod
@@ -147,12 +78,12 @@ class GreaperApp(App):
         )
 
     def compose(self) -> ComposeResult:
-        yield GreaperHeader()
-        with Container():
-            with Horizontal():
+        yield GreaperHeader(self.theme_name, id="header")
+        with Container(id="main-container"):
+            with Horizontal(id="search-bar"):
                 yield Input(placeholder="Enter search pattern...", id="search_input")
-                yield Button("Search", id="search_btn", variant="primary")
-                yield Button("Utilities", id="utilities_btn", variant="default")
+                yield Button("Search", id="search_btn", classes="primary")
+                yield Button("Utilities", id="utilities_btn")
                 yield Select(
                     [(theme, theme) for theme in THEMES.keys()],
                     prompt="Theme",
@@ -174,30 +105,33 @@ class GreaperApp(App):
                     id="syntaxmode_select",
                     value="all"
                 )
+            # Load and display the banner
+            banner_path = os.path.join(os.path.dirname(__file__), "..", "banner.txt")
+            if os.path.exists(banner_path):
+                with open(banner_path, "r", encoding="utf-8") as f:
+                    banner = f.read()
+                yield AnimatedBanner(banner, id="banner_art")
             yield Static("Results:", id="results_label")
             yield DataTable(id="results_table")
-        yield GreaperFooter()
+        yield GreaperFooter(id="footer")
 
     async def on_mount(self):
-        self.update_theme()
+        self.apply_theme()
         self.query_one("#theme_select", Select).value = self.theme_name
         table = self.query_one("#results_table", DataTable)
         table.add_columns("File", "Line", "Match", "Context Before", "Context After")
         table.zebra_stripes = True
-
-        # Focus the search input so the user can type immediately
         self.query_one("#search_input", Input).focus()
-
-        # Show which fuzzy backend is being used
         try:
             from greaper.algorithms import fuzzy
             backend = getattr(fuzzy.levenshtein, "__module__", "")
             if "cython_ext" in backend:
-                self.notify("[INFO] Using Cython-accelerated fuzzy backend.", timeout=3)
+                self.notify("[INFO] Using Cython-accelerated fuzzy backend.", timeout=8)
             else:
-                self.notify("[INFO] Using pure Python fuzzy backend.", timeout=3)
+                self.notify("[INFO] Using pure Python fuzzy backend.", timeout=8)
         except Exception as e:
             self.push_screen(ErrorModal(f"[ERROR] Could not determine fuzzy backend: {e}"))
+        self.notify("Change mode: Ctrl+T", timeout=4)
 
     async def on_button_pressed(self, event: Button.Pressed):
         if event.button.id == "search_btn":
@@ -210,25 +144,65 @@ class GreaperApp(App):
         try:
             output = run_utility(util_name)
             self.notify(f"Utility '{util_name}' ran successfully.", timeout=3)
-            # Show output in a modal if any
             if output:
                 self.push_screen(ErrorModal(str(output)))
         except Exception as e:
             self.push_screen(ErrorModal(f"Utility error: {e}"))
 
     async def on_input_submitted(self, event: Input.Submitted):
+        value = event.value.strip().lower()
+        if value == "exit":
+            await self.action_quit()
+            return
+        if value == "back":
+            table = self.query_one("#results_table", DataTable)
+            table.clear()
+            self.query_one("#search_input", Input).focus()
+            return
         await self.perform_search()
 
     async def on_select_changed(self, event: Select.Changed):
         if event.select.id == "theme_select":
             self.theme_name = event.value
+            self.theme_index = self.theme_names.index(self.theme_name)
             self._current_theme = THEMES[self.theme_name]
-            self.update_theme()
-            self.query_one(GreaperHeader).styles.background = self._current_theme["background"]
-            self.query_one(GreaperHeader).styles.color = self._current_theme["primary"]
-            self.query_one(GreaperFooter).styles.background = self._current_theme["background"]
-            self.query_one(GreaperFooter).styles.color = self._current_theme["accent"]
-            self.query_one("#results_label", Static).styles.color = self._current_theme["accent"]
+            self.apply_theme()
+            self.notify(f"Theme switched to {self.theme_name}", timeout=2)
+
+    async def action_swap_theme(self):
+        self.theme_index = (self.theme_index + 1) % len(self.theme_names)
+        self.theme_name = self.theme_names[self.theme_index]
+        self._current_theme = THEMES[self.theme_name]
+        self.apply_theme()
+        self.query_one("#theme_select", Select).value = self.theme_name
+        self.notify(f"Theme switched to {self.theme_name}", timeout=2)
+
+    def apply_theme(self):
+        theme = self._current_theme
+        header = self.query_one("#header", GreaperHeader)
+        header.update_header(self.theme_name)
+        footer = self.query_one("#footer", GreaperFooter)
+        footer.styles.background = theme.get("--footer-bg", "#16161e")
+        footer.styles.color = theme.get("--footer-fg", "#ff0080")
+        main = self.query_one("#main-container", Container)
+        main.styles.background = theme.get("--background", "#1a1b26")
+        try:
+            banner = self.query_one("#banner_art", Static)
+            banner.styles.color = theme.get("--banner-art", "#bb9af7")
+        except Exception:
+            pass
+        try:
+            results_label = self.query_one("#results_label", Static)
+            results_label.styles.color = theme.get("--results-label", "#e0af68")
+        except Exception:
+            pass
+        try:
+            table = self.query_one("#results_table", DataTable)
+            table.styles.background = theme.get("--background", "#1a1b26")
+            table.styles.color = theme.get("--foreground", "#c0caf5")
+        except Exception:
+            pass
+        # Add more widgets here as needed
 
     async def perform_search(self):
         from greaper.core import search_files
@@ -244,7 +218,7 @@ class GreaperApp(App):
         syntax_aware = self.query_one("#syntax_checkbox", Checkbox).value
         whole_word = self.query_one("#wholeword_checkbox", Checkbox).value
 
-        path = self.path if self.path else "."
+        path = self.path if hasattr(self, "path") and self.path else "."
 
         try:
             context = int(self.query_one("#context_input", Input).value)
@@ -285,20 +259,14 @@ class GreaperApp(App):
         for file, line, match, before, after in results:
             before_text = "\n".join(before) if before else ""
             after_text = "\n".join(after) if after else ""
-            row_style = self._current_theme["table_alt_row"] if alt else self._current_theme["table_row"]
             table.add_row(
                 str(file),
                 str(line),
-                f"[{self._current_theme['table_match']}]{match}[/{self._current_theme['table_match']}]",
+                match,
                 before_text,
                 after_text
             )
             alt = not alt
-
-    def update_theme(self):
-        theme = self._current_theme
-        self.styles.background = theme["background"]
-        # Add more widget style updates here if needed
 
     async def action_quit(self) -> None:
         await self.shutdown()
@@ -319,6 +287,21 @@ class ErrorModal(ModalScreen):
     async def on_button_pressed(self, event):
         if event.button.id == "close_error":
             await self.app.pop_screen()
+
+class AnimatedBanner(Static):
+    banner_text = reactive("")
+
+    def __init__(self, full_text, **kwargs):
+        super().__init__("", **kwargs)
+        self.full_text = full_text
+
+    async def on_mount(self):
+        for i in range(1, len(self.full_text) + 1):
+            self.banner_text = self.full_text[:i]
+            self.update(self.banner_text)
+            await self.sleep(0.01)  # Adjust speed here
+
+        self.notify("Change mode: Ctrl+t", timeout=18)
 
 if __name__ == "__main__":
     GreaperApp().run()
