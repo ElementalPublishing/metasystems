@@ -102,4 +102,24 @@ def batch_replace_and_export(pattern, replacement, path=".", export_path=None, *
             f.write(output)
     return output
 
-# --- Add more integrations as needed for your roadmap! ---
+# --- HuggingFace Transformers Integration ---
+try:
+    from transformers import pipeline
+except ImportError:
+    pipeline = None
+
+def hf_summarize_code(code, model_name="Salesforce/codet5-base-multi-sum"):
+    """
+    Use HuggingFace Transformers to summarize code locally or via HuggingFace Hub.
+    Example model: Salesforce/codet5-base-multi-sum
+    """
+    if pipeline is None:
+        raise ImportError("transformers package not installed. Run 'pip install transformers'")
+    summarizer = pipeline("summarization", model=model_name)
+    # HuggingFace models may have input length limits; truncate if needed
+    code = code[:1024]
+    summary = summarizer(code, max_length=128, min_length=16, do_sample=False)
+    return summary[0]['summary_text']
+
+# Example usage:
+# summary = hf_summarize_code("def foo(x):\n    return x + 1")

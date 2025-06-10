@@ -297,11 +297,36 @@ def export_command(args):
     else:
         print(f"Exported results to {args.export_path}")
 
+def summarize_command(args):
+    """Summarize code using HuggingFace Transformers."""
+    from greaper.integraton import hf_summarize_code
+    import os
+
+    # Prompt for file path if not provided
+    code_path = args.code_path if hasattr(args, "code_path") and args.code_path else ""
+    while not code_path or not os.path.isfile(code_path):
+        code_path = input("Enter path to code file to summarize:\n> ").strip()
+        if not code_path:
+            print("No file provided. Exiting.")
+            return
+        if not os.path.isfile(code_path):
+            print("File not found. Try again.")
+            code_path = ""
+    with open(code_path, "r", encoding="utf-8") as f:
+        code = f.read()
+    print("\n[Summarizing code...]\n")
+    try:
+        summary = hf_summarize_code(code)
+        print(f"Summary:\n{summary}")
+    except Exception as e:
+        print(f"[ERROR] Summarization failed: {e}")
+
 def print_available_options():
     print("\n[Greaper CLI Options]")
     print("search   - Search for a pattern in files (supports archives, syntax-aware, fuzzy, etc.)")
     print("replace  - Replace a pattern in files (preview, fuzzy, future: archive-aware)")
     print("export   - Export search results for editors/tools (VS Code, Sublime, JetBrains, Vim, Emacs, JSON, CSV, Markdown)")
+    print("summarize - Summarize code using HuggingFace Transformers")
     print("\n[Search Options]")
     print("  pattern         Pattern to search for (regex or fuzzy)")
     print("  path            Path to search (default: current directory, supports archives: .zip, .tar, .7z, .rar, etc.)")
@@ -448,6 +473,13 @@ def main():
         importfix_command()
     elif user_cmd == "utilities":
         utilities_command()
+    elif user_cmd == "summarize":
+        options = [
+            ("code_path", "", "Path to code file to summarize", str),
+        ]
+        args_dict = interactive_prompt(options)
+        args = argparse.Namespace(**args_dict)
+        summarize_command(args)
     else:
         print("Unknown command. Exiting.")
 

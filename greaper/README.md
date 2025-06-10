@@ -27,6 +27,8 @@ Now with a modern TUI, robust error handling, Cython-accelerated algorithms, and
 - [x] Syntax highlighting for code files (TUI)
 - [x] Output as plain text, JSON, CSV, or Markdown
 - [x] Export results for editors and data science
+- [x] Minimal, professional notifications (e.g., “Change mode: Ctrl+T”)
+- [x] Dynamic header with current theme
 
 ### 4. Archive and Package Support
 - [x] Detect and open archives (.zip, .tar, etc.)
@@ -45,11 +47,14 @@ Now with a modern TUI, robust error handling, Cython-accelerated algorithms, and
 - [x] Syntax-aware search (comments, strings, code)
 - [x] Parallel/multithreaded search for large projects
 - [x] Presets and reusable search patterns
+- [ ] Live search preview
+- [ ] Rich result filtering and sorting
 
 ### 7. Integration and API
 - [x] Python API for scripting
 - [x] Hooks/integration for popular editors/IDEs (VS Code, Sublime, JetBrains, Vim, Emacs)
 - [x] Export in editor-native formats
+- [ ] Plugin system for third-party extensions
 
 ### 8. Robustness & Professionalism
 - [x] User and developer documentation
@@ -57,11 +62,19 @@ Now with a modern TUI, robust error handling, Cython-accelerated algorithms, and
 - [x] Cross-platform compatibility (Windows, Linux, macOS)
 - [x] Easy installation instructions
 - [x] Robust error handling and user-friendly dialogs
+- [ ] Accessibility improvements (screen reader, colorblind modes)
+- [ ] Internationalization/localization support
 
 ### 9. Utilities and Extensibility
 - [x] Dynamic utilities system: run any utility in the `utils` folder from CLI or TUI
 - [x] Import fixer utility for auto-resolving and fixing broken imports
 - [x] John Wick import resolver for reliable imports
+- [x] BannerEnforcer and GitDestroyer utilities
+- [ ] Utility management UI (enable/disable, docs, run)
+- [ ] Script runner and automation support
+- [ ] User-customizable themes via TUI
+- [ ] Theme preview/instant apply
+- [ ] More built-in themes
 
 ---
 

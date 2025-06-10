@@ -7,6 +7,7 @@ from textual.screen import ModalScreen
 
 from greaper.utils import list_utilities, run_utility, get_utility_doc
 from greaper.themes import THEMES
+from greaper.integraton import hf_summarize_code
 import os
 
 class GreaperHeader(Static):
@@ -84,6 +85,7 @@ class GreaperApp(App):
                 yield Input(placeholder="Enter search pattern...", id="search_input")
                 yield Button("Search", id="search_btn", classes="primary")
                 yield Button("Utilities", id="utilities_btn")
+                yield Button("Summarize Code", id="summarize_btn")
                 yield Select(
                     [(theme, theme) for theme in THEMES.keys()],
                     prompt="Theme",
@@ -139,6 +141,51 @@ class GreaperApp(App):
         elif event.button.id == "utilities_btn":
             utils_list = list_utilities()
             await self.push_screen(UtilitiesModal(utils_list))
+        elif event.button.id == "summarize_btn":
+            table = self.query_one("#results_table", DataTable)
+            # 1. If a row is selected, summarize that code snippet
+            if table.row_count and table.cursor_row is not None:
+                selected_row = table.get_row(table.cursor_row)
+                code_snippet = selected_row[2] if len(selected_row) > 2 else ""
+                if code_snippet.strip():
+                    self.notify("Summarizing selected code...", timeout=2)
+                    try:
+                        summary = hf_summarize_code(code_snippet)
+                        await self.push_screen(ErrorModal(f"Summary:\n{summary}"))
+                    except Exception as e:
+                        await self.push_screen(ErrorModal(f"Summarization error: {e}"))
+                    return
+            # 2. If no selection, prompt for file path and summarize file
+            code_path = await self.prompt("No search result selected. Enter path to code file to summarize (or leave blank to batch summarize all results):")
+            if code_path and os.path.isfile(code_path):
+                try:
+                    with open(code_path, "r", encoding="utf-8") as f:
+                        code = f.read()
+                    self.notify("Summarizing file...", timeout=2)
+                    summary = hf_summarize_code(code)
+                    await self.push_screen(ErrorModal(f"Summary for {os.path.basename(code_path)}:\n{summary}"))
+                except Exception as e:
+                    await self.push_screen(ErrorModal(f"Summarization error: {e}"))
+                return
+            # 3. If no file path, batch summarize all results in the table
+            if table.row_count:
+                self.notify("Batch summarizing all search results...", timeout=2)
+                summaries = []
+                for idx in range(table.row_count):
+                    row = table.get_row(idx)
+                    code_snippet = row[2] if len(row) > 2 else ""
+                    if code_snippet.strip():
+                        try:
+                            summary = hf_summarize_code(code_snippet)
+                        except Exception as e:
+                            summary = f"[Error: {e}]"
+                        summaries.append(f"File: {row[0]}, Line: {row[1]}\nSummary: {summary}\n")
+                if summaries:
+                    await self.push_screen(ErrorModal("Batch Summaries:\n\n" + "\n".join(summaries)))
+                else:
+                    self.notify("No code snippets to summarize in results.", timeout=2)
+            else:
+                self.notify("No search results or file provided to summarize.", timeout=2)
 
     def run_utility_from_tui(self, util_name):
         try:

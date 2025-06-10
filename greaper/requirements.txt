@@ -1,0 +1,2 @@
+transformers>=4.0.0
+torch  # or tensorflow, but torch is most common for HuggingFace
